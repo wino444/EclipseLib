@@ -1,5 +1,6 @@
 -- 🌒 EclipseLib
 -- Version: 2.0.0
+-- Theme: Dark but Radiant
 
 local EclipseLib = {}
 EclipseLib.__index = EclipseLib
@@ -87,15 +88,6 @@ local function CreateStroke(parent, color, thickness)
     s.Parent    = parent
 end
 
-local function CreatePadding(parent, t, b, l, r)
-    local p = Instance.new("UIPadding")
-    p.PaddingTop    = UDim.new(0, t or 8)
-    p.PaddingBottom = UDim.new(0, b or 8)
-    p.PaddingLeft   = UDim.new(0, l or 8)
-    p.PaddingRight  = UDim.new(0, r or 8)
-    p.Parent = parent
-end
-
 local function SetClipboard(text)
     pcall(function()
         if setclipboard then setclipboard(text)
@@ -126,10 +118,10 @@ local function EnsureNotifHolder()
     NotifHolder.Parent   = sg
 
     local layout = Instance.new("UIListLayout")
-    layout.SortOrder          = Enum.SortOrder.LayoutOrder
-    layout.Padding            = UDim.new(0, 8)
-    layout.VerticalAlignment  = Enum.VerticalAlignment.Top
-    layout.Parent             = NotifHolder
+    layout.SortOrder         = Enum.SortOrder.LayoutOrder
+    layout.Padding           = UDim.new(0, 8)
+    layout.VerticalAlignment = Enum.VerticalAlignment.Top
+    layout.Parent            = NotifHolder
 end
 
 function EclipseLib:Notify(opts)
@@ -211,10 +203,10 @@ end
 -- 🔑 KeySystem Screen
 -- ═══════════════════════════════════════
 local function ShowKeySystem(opts, onSuccess)
-    local keyList   = opts.Key or {}
-    local keyTitle  = opts.KeyTitle or "🔑 ใส่ Key"
-    local keyDesc   = opts.KeyDescription or "กรอก Key เพื่อใช้งาน"
-    local keyLink   = opts.KeyLink or ""  -- ลิ้งที่จะคัดลอกให้
+    local keyList  = opts.Key            or {}
+    local keyTitle = opts.KeyTitle       or "🔑 ใส่ Key"
+    local keyDesc  = opts.KeyDescription or "กรอก Key เพื่อใช้งาน"
+    local keyLink  = opts.KeyLink        or ""
 
     local sg = Instance.new("ScreenGui")
     sg.Name           = "__EclipseKey"
@@ -224,30 +216,26 @@ local function ShowKeySystem(opts, onSuccess)
     pcall(function() sg.Parent = CoreGui end)
     if not sg.Parent then sg.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- Blur BG
     local bg = Instance.new("Frame")
-    bg.BackgroundColor3   = Color3.fromRGB(0, 0, 0)
+    bg.BackgroundColor3       = Color3.fromRGB(0, 0, 0)
     bg.BackgroundTransparency = 0.4
     bg.Size   = UDim2.new(1, 0, 1, 0)
     bg.Parent = sg
 
-    -- Card
     local card = Instance.new("Frame")
     card.BackgroundColor3 = Theme.Background
-    card.Size     = UDim2.new(0, 320, 0, 260)
-    card.Position = UDim2.new(0.5, -160, 0.5, -130)
+    card.Size     = UDim2.new(0, 320, 0, 270)
+    card.Position = UDim2.new(0.5, -160, 0.5, -135)
     card.Parent   = sg
     CreateCorner(card, 14)
     CreateStroke(card, Theme.Accent, 1.5)
 
-    -- Top glow bar
     local glowBar = Instance.new("Frame")
     glowBar.BackgroundColor3 = Theme.Accent
     glowBar.Size = UDim2.new(1, 0, 0, 3)
     glowBar.BorderSizePixel = 0
     glowBar.Parent = card
 
-    -- Icon
     local iconLbl = Instance.new("TextLabel")
     iconLbl.BackgroundTransparency = 1
     iconLbl.Position  = UDim2.new(0, 0, 0, 16)
@@ -278,7 +266,6 @@ local function ShowKeySystem(opts, onSuccess)
     descLbl.TextWrapped     = true
     descLbl.Parent          = card
 
-    -- Input box
     local inputBG = Instance.new("Frame")
     inputBG.BackgroundColor3 = Theme.Input_BG
     inputBG.Size     = UDim2.new(1, -32, 0, 36)
@@ -300,22 +287,21 @@ local function ShowKeySystem(opts, onSuccess)
     inputBox.Text               = ""
     inputBox.Parent             = inputBG
 
-    -- Status label
     local statusLbl = Instance.new("TextLabel")
     statusLbl.BackgroundTransparency = 1
-    statusLbl.Position  = UDim2.new(0, 16, 0, 158)
-    statusLbl.Size      = UDim2.new(1, -32, 0, 16)
-    statusLbl.Text      = ""
+    statusLbl.Position   = UDim2.new(0, 16, 0, 160)
+    statusLbl.Size       = UDim2.new(1, -32, 0, 16)
+    statusLbl.Text       = ""
     statusLbl.TextColor3 = Color3.fromRGB(200, 60, 60)
-    statusLbl.Font      = Enum.Font.Gotham
-    statusLbl.TextSize  = 11
-    statusLbl.Parent    = card
+    statusLbl.Font       = Enum.Font.Gotham
+    statusLbl.TextSize   = 11
+    statusLbl.Parent     = card
 
-    -- ปุ่ม Get Key (คัดลอกลิ้ง)
+    -- ปุ่ม Get Key
     local getLinkBtn = Instance.new("TextButton")
     getLinkBtn.BackgroundColor3 = Theme.Secondary
     getLinkBtn.Size     = UDim2.new(0, 120, 0, 34)
-    getLinkBtn.Position = UDim2.new(0, 16, 0, 182)
+    getLinkBtn.Position = UDim2.new(0, 16, 0, 184)
     getLinkBtn.Text     = "🔗 Get Key"
     getLinkBtn.TextColor3 = Theme.Accent
     getLinkBtn.Font     = Enum.Font.GothamBold
@@ -338,7 +324,7 @@ local function ShowKeySystem(opts, onSuccess)
     local submitBtn = Instance.new("TextButton")
     submitBtn.BackgroundColor3 = Theme.Accent
     submitBtn.Size     = UDim2.new(0, 130, 0, 34)
-    submitBtn.Position = UDim2.new(1, -146, 0, 182)
+    submitBtn.Position = UDim2.new(1, -146, 0, 184)
     submitBtn.Text     = "✅ ยืนยัน Key"
     submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     submitBtn.Font     = Enum.Font.GothamBold
@@ -372,7 +358,7 @@ end
 -- ═══════════════════════════════════════
 function EclipseLib:CreateWindow(opts)
     opts = opts or {}
-    local windowName = opts.Name or "EclipseLib"
+    local windowName = opts.Name            or "EclipseLib"
     local loadTitle  = opts.LoadingTitle    or "🌒 EclipseLib"
     local loadSub    = opts.LoadingSubtitle or "กำลังโหลด..."
     local useKey     = opts.KeySystem       or false
@@ -383,7 +369,7 @@ function EclipseLib:CreateWindow(opts)
         KeyLink        = opts.KeyLink        or "",
     }
 
-    -- ═══ ScreenGui ═══
+    -- ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name           = "__EclipseLib"
     ScreenGui.ResetOnSpawn   = false
@@ -394,7 +380,7 @@ function EclipseLib:CreateWindow(opts)
         ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
     end
 
-    -- ═══ Loading Screen ═══
+    -- Loading Screen
     local LoadScreen = Instance.new("Frame")
     LoadScreen.BackgroundColor3 = Theme.Background
     LoadScreen.Size   = UDim2.new(1, 0, 1, 0)
@@ -449,7 +435,7 @@ function EclipseLib:CreateWindow(opts)
         LoadScreen:Destroy()
     end)
 
-    -- ═══ Main Frame ═══
+    -- Main Frame
     local Main = Instance.new("Frame")
     Main.BackgroundColor3 = Theme.Background
     Main.Size     = UDim2.new(0, 500, 0, 350)
@@ -459,7 +445,7 @@ function EclipseLib:CreateWindow(opts)
     CreateCorner(Main, 12)
     CreateStroke(Main, Theme.Border, 1.5)
 
-    -- ═══ Top Bar ═══
+    -- Top Bar
     local TopBar = Instance.new("Frame")
     TopBar.BackgroundColor3 = Theme.Secondary
     TopBar.Size   = UDim2.new(1, 0, 0, 38)
@@ -484,7 +470,6 @@ function EclipseLib:CreateWindow(opts)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent         = TopBar
 
-    -- ปุ่ม X
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
     CloseBtn.Size     = UDim2.new(0, 22, 0, 22)
@@ -496,7 +481,6 @@ function EclipseLib:CreateWindow(opts)
     CloseBtn.Parent   = TopBar
     CreateCorner(CloseBtn, 6)
 
-    -- ปุ่ม Toggle (minimize)
     local ToggleBtn = Instance.new("TextButton")
     ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
     ToggleBtn.Size     = UDim2.new(0, 22, 0, 22)
@@ -510,21 +494,21 @@ function EclipseLib:CreateWindow(opts)
 
     MakeDraggable(Main, TopBar)
 
-    -- ═══ Body ═══
+    -- Body
     local Body = Instance.new("Frame")
     Body.BackgroundTransparency = 1
     Body.Position = UDim2.new(0, 0, 0, 38)
     Body.Size     = UDim2.new(1, 0, 1, -38)
     Body.Parent   = Main
 
-    -- ═══ Tab Bar ═══
+    -- Tab Bar
     local TabBar = Instance.new("ScrollingFrame")
-    TabBar.BackgroundColor3    = Theme.Secondary
-    TabBar.Size                = UDim2.new(0, 115, 1, 0)
-    TabBar.ScrollBarThickness  = 2
-    TabBar.CanvasSize          = UDim2.new(0, 0, 0, 0)
-    TabBar.ScrollingDirection  = Enum.ScrollingDirection.Y
-    TabBar.Parent              = Body
+    TabBar.BackgroundColor3   = Theme.Secondary
+    TabBar.Size               = UDim2.new(0, 115, 1, 0)
+    TabBar.ScrollBarThickness = 2
+    TabBar.CanvasSize         = UDim2.new(0, 0, 0, 0)
+    TabBar.ScrollingDirection = Enum.ScrollingDirection.Y
+    TabBar.Parent             = Body
     CreateStroke(TabBar, Theme.Border, 1)
 
     local TabLayout = Instance.new("UIListLayout")
@@ -542,14 +526,14 @@ function EclipseLib:CreateWindow(opts)
         TabBar.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y + 12)
     end)
 
-    -- ═══ Content Area ═══
+    -- Content Area
     local ContentArea = Instance.new("Frame")
     ContentArea.BackgroundTransparency = 1
     ContentArea.Position = UDim2.new(0, 119, 0, 0)
     ContentArea.Size     = UDim2.new(1, -119, 1, 0)
     ContentArea.Parent   = Body
 
-    -- ═══ Toggle Logic ═══
+    -- Toggle/Close Logic
     local isOpen = true
     ToggleBtn.MouseButton1Click:Connect(function()
         isOpen = not isOpen
@@ -590,23 +574,20 @@ function EclipseLib:CreateWindow(opts)
         activeTab = name
     end
 
-    -- ─────────────────────────────────────
-    -- Helper: สร้าง ScrollFrame + Layout
-    -- ─────────────────────────────────────
     local function MakeScrollFrame(name)
         local sf = Instance.new("ScrollingFrame")
-        sf.Name                = name
+        sf.Name               = name
         sf.BackgroundTransparency = 1
-        sf.Size                = UDim2.new(1, 0, 1, 0)
-        sf.CanvasSize          = UDim2.new(0, 0, 0, 0)
-        sf.ScrollBarThickness  = 3
-        sf.Visible             = false
-        sf.Parent              = ContentArea
+        sf.Size               = UDim2.new(1, 0, 1, 0)
+        sf.CanvasSize         = UDim2.new(0, 0, 0, 0)
+        sf.ScrollBarThickness = 3
+        sf.Visible            = false
+        sf.Parent             = ContentArea
 
         local layout = Instance.new("UIListLayout")
-        layout.Padding     = UDim.new(0, 6)
-        layout.SortOrder   = Enum.SortOrder.LayoutOrder
-        layout.Parent      = sf
+        layout.Padding   = UDim.new(0, 6)
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Parent    = sf
 
         local pad = Instance.new("UIPadding")
         pad.PaddingTop   = UDim.new(0, 8)
@@ -621,7 +602,6 @@ function EclipseLib:CreateWindow(opts)
         return sf
     end
 
-    -- Helper: สร้างปุ่ม Tab
     local function MakeTabButton(label, isActive)
         local btn = Instance.new("TextButton")
         btn.BackgroundColor3 = isActive and Theme.TabActive or Theme.TabInactive
@@ -648,6 +628,75 @@ function EclipseLib:CreateWindow(opts)
         tabFrames["_Welcome"]  = wFrame
         activeTab = "_Welcome"
 
+        -- ── 🖼️ Avatar Profile Card ──
+        local avatarCard = Instance.new("Frame")
+        avatarCard.BackgroundColor3 = Theme.Secondary
+        avatarCard.Size   = UDim2.new(1, 0, 0, 84)
+        avatarCard.Parent = wFrame
+        CreateCorner(avatarCard, 12)
+        CreateStroke(avatarCard, Theme.Border)
+
+        -- กรอบรูป avatar
+        local avatarFrame = Instance.new("Frame")
+        avatarFrame.BackgroundColor3 = Theme.Accent
+        avatarFrame.Size     = UDim2.new(0, 62, 0, 62)
+        avatarFrame.Position = UDim2.new(0, 11, 0.5, -31)
+        avatarFrame.Parent   = avatarCard
+        CreateCorner(avatarFrame, 31)
+        CreateStroke(avatarFrame, Theme.Accent, 2)
+
+        local avatarImg = Instance.new("ImageLabel")
+        avatarImg.BackgroundTransparency = 1
+        avatarImg.Size     = UDim2.new(1, -4, 1, -4)
+        avatarImg.Position = UDim2.new(0, 2, 0, 2)
+        avatarImg.Image    = "https://www.roblox.com/headshot-thumbnail/image?userId="
+            .. tostring(LocalPlayer.UserId)
+            .. "&width=150&height=150&format=png"
+        avatarImg.Parent = avatarFrame
+        CreateCorner(avatarImg, 29)
+
+        -- Display Name
+        local dispName = Instance.new("TextLabel")
+        dispName.BackgroundTransparency = 1
+        dispName.Position       = UDim2.new(0, 86, 0, 14)
+        dispName.Size           = UDim2.new(1, -96, 0, 22)
+        dispName.Text           = LocalPlayer.DisplayName or "?"
+        dispName.TextColor3     = Theme.Text
+        dispName.Font           = Enum.Font.GothamBold
+        dispName.TextSize       = 16
+        dispName.TextXAlignment = Enum.TextXAlignment.Left
+        dispName.Parent         = avatarCard
+
+        -- @username
+        local userNameLbl = Instance.new("TextLabel")
+        userNameLbl.BackgroundTransparency = 1
+        userNameLbl.Position       = UDim2.new(0, 86, 0, 38)
+        userNameLbl.Size           = UDim2.new(1, -96, 0, 16)
+        userNameLbl.Text           = "@" .. (LocalPlayer.Name or "?")
+        userNameLbl.TextColor3     = Theme.SubText
+        userNameLbl.Font           = Enum.Font.Gotham
+        userNameLbl.TextSize       = 12
+        userNameLbl.TextXAlignment = Enum.TextXAlignment.Left
+        userNameLbl.Parent         = avatarCard
+
+        -- Badge UserID
+        local idBadge = Instance.new("Frame")
+        idBadge.BackgroundColor3 = Theme.Accent
+        idBadge.Size     = UDim2.new(0, 100, 0, 18)
+        idBadge.Position = UDim2.new(0, 86, 0, 58)
+        idBadge.Parent   = avatarCard
+        CreateCorner(idBadge, 6)
+
+        local idLbl = Instance.new("TextLabel")
+        idLbl.BackgroundTransparency = 1
+        idLbl.Size       = UDim2.new(1, 0, 1, 0)
+        idLbl.Text       = "🆔 " .. tostring(LocalPlayer.UserId)
+        idLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        idLbl.Font       = Enum.Font.GothamBold
+        idLbl.TextSize   = 10
+        idLbl.Parent     = idBadge
+
+        -- ── Info Cards ──
         local function MakeInfoCard(icon, labelText, valueFunc)
             local card = Instance.new("Frame")
             card.BackgroundColor3 = Theme.Secondary
@@ -693,12 +742,6 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
 
-        MakeInfoCard("👤", "Display Name  ·  Username", function()
-            return (LocalPlayer.DisplayName or "?") .. "  ·  @" .. (LocalPlayer.Name or "?")
-        end)
-        MakeInfoCard("🆔", "User ID", function()
-            return tostring(LocalPlayer.UserId)
-        end)
         MakeInfoCard("🗺️", "ชื่อแมพ", function()
             return tostring(game.Name)
         end)
@@ -725,29 +768,28 @@ function EclipseLib:CreateWindow(opts)
             SetActiveTab("_Settings")
         end)
 
-        -- Section title helper
         local function SectionTitle(text)
             local lbl = Instance.new("TextLabel")
             lbl.BackgroundTransparency = 1
-            lbl.Size        = UDim2.new(1, 0, 0, 22)
-            lbl.Text        = text
-            lbl.TextColor3  = Theme.Accent
-            lbl.Font        = Enum.Font.GothamBold
-            lbl.TextSize    = 12
+            lbl.Size           = UDim2.new(1, 0, 0, 22)
+            lbl.Text           = text
+            lbl.TextColor3     = Theme.Accent
+            lbl.Font           = Enum.Font.GothamBold
+            lbl.TextSize       = 12
             lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.Parent      = sFrame
+            lbl.Parent         = sFrame
         end
 
-        -- ── 🎨 Accent Color Presets ──
+        -- 🎨 Accent Color Presets
         SectionTitle("🎨 สี Accent")
 
         local colorPresets = {
-            {"🟣 Purple",  Color3.fromRGB(100, 60, 200)},
-            {"🔵 Blue",    Color3.fromRGB(50, 120, 220)},
-            {"🟢 Green",   Color3.fromRGB(50, 180, 100)},
-            {"🔴 Red",     Color3.fromRGB(200, 60, 60)},
-            {"🟠 Orange",  Color3.fromRGB(220, 120, 40)},
-            {"🩷 Pink",    Color3.fromRGB(220, 80, 160)},
+            {"🟣 Purple", Color3.fromRGB(100, 60, 200)},
+            {"🔵 Blue",   Color3.fromRGB(50, 120, 220)},
+            {"🟢 Green",  Color3.fromRGB(50, 180, 100)},
+            {"🔴 Red",    Color3.fromRGB(200, 60, 60)},
+            {"🟠 Orange", Color3.fromRGB(220, 120, 40)},
+            {"🩷 Pink",   Color3.fromRGB(220, 80, 160)},
         }
 
         local colorRow = Instance.new("Frame")
@@ -758,11 +800,11 @@ function EclipseLib:CreateWindow(opts)
         CreateStroke(colorRow, Theme.Border)
 
         local colorLayout = Instance.new("UIListLayout")
-        colorLayout.FillDirection  = Enum.FillDirection.Horizontal
-        colorLayout.Padding        = UDim.new(0, 6)
-        colorLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+        colorLayout.FillDirection       = Enum.FillDirection.Horizontal
+        colorLayout.Padding             = UDim.new(0, 6)
+        colorLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
         colorLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        colorLayout.Parent         = colorRow
+        colorLayout.Parent              = colorRow
 
         for _, preset in ipairs(colorPresets) do
             local name  = preset[1]
@@ -774,12 +816,11 @@ function EclipseLib:CreateWindow(opts)
             dot.Parent  = colorRow
             CreateCorner(dot, 14)
             dot.MouseButton1Click:Connect(function()
-                Theme.Accent      = color
-                Theme.TabActive   = color
-                Theme.Toggle_ON   = color
-                Theme.Slider_Fill = color
+                Theme.Accent       = color
+                Theme.TabActive    = color
+                Theme.Toggle_ON    = color
+                Theme.Slider_Fill  = color
                 Theme.Notif_Border = color
-                -- update active tab button
                 for n, btn in pairs(tabButtons) do
                     if n == activeTab then
                         Tween(btn, {BackgroundColor3 = color}, 0.2)
@@ -794,13 +835,13 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
 
-        -- ── 📏 ขนาด UI ──
+        -- 📏 ขนาด UI
         SectionTitle("📏 ขนาด UI")
 
         local sizePresets = {
-            {"เล็ก",   UDim2.new(0, 420, 0, 300)},
-            {"กลาง",   UDim2.new(0, 500, 0, 350)},
-            {"ใหญ่",   UDim2.new(0, 600, 0, 420)},
+            {"เล็ก",  UDim2.new(0, 420, 0, 300)},
+            {"กลาง",  UDim2.new(0, 500, 0, 350)},
+            {"ใหญ่",  UDim2.new(0, 600, 0, 420)},
         }
 
         local sizeRow = Instance.new("Frame")
@@ -811,11 +852,11 @@ function EclipseLib:CreateWindow(opts)
         CreateStroke(sizeRow, Theme.Border)
 
         local sizeLayout = Instance.new("UIListLayout")
-        sizeLayout.FillDirection = Enum.FillDirection.Horizontal
-        sizeLayout.Padding       = UDim.new(0, 6)
+        sizeLayout.FillDirection       = Enum.FillDirection.Horizontal
+        sizeLayout.Padding             = UDim.new(0, 6)
         sizeLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
         sizeLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        sizeLayout.Parent = sizeRow
+        sizeLayout.Parent              = sizeRow
 
         for _, sz in ipairs(sizePresets) do
             local label = sz[1]
@@ -831,17 +872,16 @@ function EclipseLib:CreateWindow(opts)
             CreateCorner(btn2, 8)
             btn2.MouseButton1Click:Connect(function()
                 if isOpen then
-                    local newSize = UDim2.new(size.X.Scale, size.X.Offset, size.Y.Scale, size.Y.Offset)
-                    Tween(Main, {Size = newSize}, 0.3)
+                    Tween(Main, {Size = size}, 0.3)
                     Main.Position = UDim2.new(
-                        0.5, -size.X.Offset/2,
-                        0.5, -size.Y.Offset/2
+                        0.5, -size.X.Offset / 2,
+                        0.5, -size.Y.Offset / 2
                     )
                 end
             end)
         end
 
-        -- ── 🔔 ตำแหน่ง Notification ──
+        -- 🔔 ตำแหน่ง Notification
         SectionTitle("🔔 ตำแหน่ง Notification")
 
         local notifPositions = {
@@ -857,11 +897,11 @@ function EclipseLib:CreateWindow(opts)
         CreateStroke(notifRow, Theme.Border)
 
         local notifLayout = Instance.new("UIListLayout")
-        notifLayout.FillDirection = Enum.FillDirection.Horizontal
-        notifLayout.Padding       = UDim.new(0, 6)
+        notifLayout.FillDirection       = Enum.FillDirection.Horizontal
+        notifLayout.Padding             = UDim.new(0, 6)
         notifLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
         notifLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-        notifLayout.Parent = notifRow
+        notifLayout.Parent              = notifRow
 
         for _, np in ipairs(notifPositions) do
             local label = np[1]
@@ -887,7 +927,7 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
 
-        -- ── 🌗 Transparency ──
+        -- 🌗 Transparency Slider
         SectionTitle("🌗 ความโปร่งใส UI")
 
         local transCard = Instance.new("Frame")
@@ -896,17 +936,6 @@ function EclipseLib:CreateWindow(opts)
         transCard.Parent = sFrame
         CreateCorner(transCard, 8)
         CreateStroke(transCard, Theme.Border)
-
-        local transValLbl = Instance.new("TextLabel")
-        transValLbl.BackgroundTransparency = 1
-        transValLbl.Position       = UDim2.new(0.7, 0, 0, 6)
-        transValLbl.Size           = UDim2.new(0.28, 0, 0, 18)
-        transValLbl.Text           = "0%"
-        transValLbl.TextColor3     = Theme.Accent
-        transValLbl.Font           = Enum.Font.GothamBold
-        transValLbl.TextSize       = 13
-        transValLbl.TextXAlignment = Enum.TextXAlignment.Right
-        transValLbl.Parent         = transCard
 
         local transNameL = Instance.new("TextLabel")
         transNameL.BackgroundTransparency = 1
@@ -918,6 +947,17 @@ function EclipseLib:CreateWindow(opts)
         transNameL.TextSize       = 12
         transNameL.TextXAlignment = Enum.TextXAlignment.Left
         transNameL.Parent         = transCard
+
+        local transValLbl = Instance.new("TextLabel")
+        transValLbl.BackgroundTransparency = 1
+        transValLbl.Position       = UDim2.new(0.7, 0, 0, 6)
+        transValLbl.Size           = UDim2.new(0.28, 0, 0, 18)
+        transValLbl.Text           = "0%"
+        transValLbl.TextColor3     = Theme.Accent
+        transValLbl.Font           = Enum.Font.GothamBold
+        transValLbl.TextSize       = 13
+        transValLbl.TextXAlignment = Enum.TextXAlignment.Right
+        transValLbl.Parent         = transCard
 
         local tTrackBG = Instance.new("Frame")
         tTrackBG.BackgroundColor3 = Theme.Slider_BG
@@ -948,8 +988,7 @@ function EclipseLib:CreateWindow(opts)
                 local sz  = tTrackBG.AbsoluteSize
                 local rel = math.clamp((input.Position.X - abs.X) / sz.X, 0, 1)
                 tFill.Size = UDim2.new(rel, 0, 1, 0)
-                local pct  = math.floor(rel * 80) -- max 80% โปร่งใส
-                transValLbl.Text = pct .. "%"
+                transValLbl.Text = math.floor(rel * 80) .. "%"
                 Tween(Main, {BackgroundTransparency = rel * 0.8}, 0.05)
             end
         end)
@@ -974,8 +1013,8 @@ function EclipseLib:CreateWindow(opts)
             tabIcon = nameOrOpts.Icon or ""
         end
 
-        local label  = (tabIcon ~= "") and (tabIcon .. " " .. tabName) or tabName
-        local tabBtn = MakeTabButton(label, false)
+        local label    = (tabIcon ~= "") and (tabIcon .. " " .. tabName) or tabName
+        local tabBtn   = MakeTabButton(label, false)
         local tabFrame = MakeScrollFrame("Frame_" .. tabName)
 
         tabButtons[tabName] = tabBtn
@@ -985,7 +1024,6 @@ function EclipseLib:CreateWindow(opts)
             SetActiveTab(tabName)
         end)
 
-        -- ── Tab API ──
         local TabAPI = {}
 
         local function BaseCard(h)
@@ -1003,14 +1041,14 @@ function EclipseLib:CreateWindow(opts)
             opts2 = opts2 or {}
             local lbl = Instance.new("TextLabel")
             lbl.BackgroundTransparency = 1
-            lbl.Size        = UDim2.new(1, 0, 0, 24)
-            lbl.Text        = opts2.Text or ""
-            lbl.TextColor3  = Theme.SubText
-            lbl.Font        = Enum.Font.Gotham
-            lbl.TextSize    = 12
+            lbl.Size           = UDim2.new(1, 0, 0, 24)
+            lbl.Text           = opts2.Text or ""
+            lbl.TextColor3     = Theme.SubText
+            lbl.Font           = Enum.Font.Gotham
+            lbl.TextSize       = 12
             lbl.TextXAlignment = Enum.TextXAlignment.Left
-            lbl.TextWrapped = true
-            lbl.Parent      = tabFrame
+            lbl.TextWrapped    = true
+            lbl.Parent         = tabFrame
             local API = {}
             function API:SetText(t) lbl.Text = t end
             return API
@@ -1020,6 +1058,7 @@ function EclipseLib:CreateWindow(opts)
         function TabAPI:AddButton(opts2)
             opts2 = opts2 or {}
             local card = BaseCard(50)
+
             local nameLbl = Instance.new("TextLabel")
             nameLbl.BackgroundTransparency = 1
             nameLbl.Position       = UDim2.new(0, 10, 0, 6)
@@ -1045,8 +1084,8 @@ function EclipseLib:CreateWindow(opts)
             if opts2.RealtimeValue then
                 local rtLbl = Instance.new("TextLabel")
                 rtLbl.BackgroundTransparency = 1
-                rtLbl.Position       = UDim2.new(0.6, 0, 0, 6)
-                rtLbl.Size           = UDim2.new(0.22, 0, 0, 18)
+                rtLbl.Position       = UDim2.new(0.58, 0, 0, 6)
+                rtLbl.Size           = UDim2.new(0.24, 0, 0, 18)
                 rtLbl.Text           = tostring(opts2.RealtimeValue())
                 rtLbl.TextColor3     = Theme.Accent
                 rtLbl.Font           = Enum.Font.GothamBold
@@ -1153,10 +1192,10 @@ function EclipseLib:CreateWindow(opts)
         -- 🎚️ Slider
         function TabAPI:AddSlider(opts2)
             opts2 = opts2 or {}
-            local minVal  = opts2.Min     or 0
-            local maxVal  = opts2.Max     or 100
-            local value   = math.clamp(opts2.Default or minVal, minVal, maxVal)
-            local card    = BaseCard(60)
+            local minVal = opts2.Min     or 0
+            local maxVal = opts2.Max     or 100
+            local value  = math.clamp(opts2.Default or minVal, minVal, maxVal)
+            local card   = BaseCard(60)
 
             local nameLbl = Instance.new("TextLabel")
             nameLbl.BackgroundTransparency = 1
@@ -1198,7 +1237,7 @@ function EclipseLib:CreateWindow(opts)
                 local abs = trackBG.AbsolutePosition
                 local sz  = trackBG.AbsoluteSize
                 local rel = math.clamp((pos.X - abs.X) / sz.X, 0, 1)
-                value      = math.floor(minVal + (maxVal - minVal) * rel)
+                value       = math.floor(minVal + (maxVal - minVal) * rel)
                 valLbl.Text = tostring(value)
                 fill.Size   = UDim2.new(rel, 0, 1, 0)
                 if opts2.Callback then opts2.Callback(value) end
@@ -1246,9 +1285,9 @@ function EclipseLib:CreateWindow(opts)
 
             local wrapper = Instance.new("Frame")
             wrapper.BackgroundTransparency = 1
-            wrapper.Size            = UDim2.new(1, 0, 0, 46)
+            wrapper.Size             = UDim2.new(1, 0, 0, 46)
             wrapper.ClipsDescendants = false
-            wrapper.Parent          = tabFrame
+            wrapper.Parent           = tabFrame
 
             local card = Instance.new("Frame")
             card.BackgroundColor3  = Theme.Secondary
@@ -1319,9 +1358,9 @@ function EclipseLib:CreateWindow(opts)
             CreateStroke(dropList, Theme.Border)
 
             local dLayout = Instance.new("UIListLayout")
-            dLayout.Padding    = UDim.new(0, 2)
-            dLayout.SortOrder  = Enum.SortOrder.LayoutOrder
-            dLayout.Parent     = dropList
+            dLayout.Padding   = UDim.new(0, 2)
+            dLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            dLayout.Parent    = dropList
             local dPad = Instance.new("UIPadding")
             dPad.PaddingTop   = UDim.new(0, 4)
             dPad.PaddingLeft  = UDim.new(0, 4)
@@ -1345,11 +1384,11 @@ function EclipseLib:CreateWindow(opts)
                     iBtn.Parent   = dropList
                     CreateCorner(iBtn, 6)
                     iBtn.MouseButton1Click:Connect(function()
-                        selected       = item
-                        selLbl.Text    = item
-                        isExpand       = false
+                        selected         = item
+                        selLbl.Text      = item
+                        isExpand         = false
                         dropList.Visible = false
-                        arrowBtn.Text  = "▼"
+                        arrowBtn.Text    = "▼"
                         if opts2.Callback then opts2.Callback(item) end
                     end)
                 end
@@ -1424,12 +1463,11 @@ function EclipseLib:CreateWindow(opts)
 
     function WindowObj:Notify(o) EclipseLib:Notify(o) end
 
-    -- ═══ KeySystem ═══
+    -- KeySystem
     local function StartMain()
-        -- เริ่มต้น UI ปกติ
         EclipseLib:Notify({
             Title   = "🌒 " .. windowName,
-            Content = "โหลดสำเร็จแล้ว!",
+            Content = "โหลดสำเร็จแล้ว! ✨",
             Duration = 3,
             Type    = "success"
         })
