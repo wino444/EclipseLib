@@ -1238,7 +1238,7 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
 
-        MakeInfoCard("🗺️", "ชื่อแมพ", function() return tostring(game.Name) end)
+        MakeInfoCard("🗺️", "ชื่อแมพ", function() local name = "" pcall(function() name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end) if name == "" or name == nil then pcall(function() name = game.Name end) end if name == "" or name == nil then name = "ไม่พบชื่อแมพ" end return name end)
         MakeInfoCard("📍", "Place ID", function() return tostring(game.PlaceId) end)
 
         wBtn.MouseButton1Click:Connect(function() SetActiveTab("_Welcome") end)
