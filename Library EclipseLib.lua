@@ -10,7 +10,7 @@ EclipseLib.__index = EclipseLib
 -- Mode: "fade" | "zoom" | "glitch" | "particle"
 -- ═══════════════════════════════════════
 local IntroConfig = {
-    Mode     = "fade",   -- default mode
+    Mode     = "particle",   -- default mode
     Duration = 4,        -- วินาทีรวม
     Icon     = "🌒",     -- ไอคอนตรงกลาง
 }
