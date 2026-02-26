@@ -1,11 +1,9 @@
 -- 🌒 EclipseLib
--- Version: 5.2.0
+-- Version: 5.2.1
 -- Theme: Dark but Radiant
 
 local EclipseLib = {}
 EclipseLib.__index = EclipseLib
-
-local EclipseFragment = loadstring(game:HttpGet('https://raw.githubusercontent.com/wino444/EclipseLib/main/EclipseLib%20Fragment.lua'))()
 
 -- ═══════════════════════════════════════
 -- 🎬 Intro Config (เจ้าของโค้ดเปลี่ยนได้เท่านั้น)
@@ -564,6 +562,7 @@ function EclipseLib:CreateWindow(opts)
             if years>0 then result=result..years.." ปี " end
             if months>0 then result=result..months.." เดือน " end
             result=result..d.." วัน"
+            -- ถ้าแค่วันเดียวก็แสดงแค่วัน ไม่มี ปี เดือน ก็โอเค
             return result
         end)
 
@@ -573,17 +572,19 @@ function EclipseLib:CreateWindow(opts)
             return (jid and jid~="") and jid or "ไม่พบ"
         end)
 
-        -- ⏱️ เวลาที่เล่น (นับตั้งแต่รัน)
+        -- ⏱️ เวลาที่เล่น (นับตั้งแต่รัน — แสดง วัน ชั่วโมง นาที วินาที)
         local sessionStart=tick()
         MakeInfoCard("⏱️","เวลาที่เล่น",function()
             local elapsed=math.floor(tick()-sessionStart)
             local d=math.floor(elapsed/86400); elapsed=elapsed-(d*86400)
             local h=math.floor(elapsed/3600); elapsed=elapsed-(h*3600)
             local m=math.floor(elapsed/60)
+            local s=elapsed-(m*60)
             local result=""
             if d>0 then result=result..d.." วัน " end
             if h>0 then result=result..h.." ชั่วโมง " end
-            result=result..m.." นาที"
+            if m>0 then result=result..m.." นาที " end
+            result=result..s.." วินาที"
             return result
         end)
 
