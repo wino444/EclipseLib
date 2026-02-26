@@ -1,5 +1,5 @@
 -- 🌒 EclipseLib
--- Version: 4.0.0
+-- Version: 5.0.0
 -- Theme: Dark but Radiant
 
 local EclipseLib = {}
@@ -10,7 +10,7 @@ EclipseLib.__index = EclipseLib
 -- Mode: "fade" | "zoom" | "glitch" | "particle"
 -- ═══════════════════════════════════════
 local IntroConfig = {
-    Mode     = "fade",
+    Mode     = "particle",
     Duration = 4,
     Icon     = "🌒",
 }
@@ -507,37 +507,174 @@ function EclipseLib:CreateWindow(opts)
             local l=Instance.new("TextLabel"); l.BackgroundTransparency=1; l.Size=UDim2.new(1,0,0,22); l.Text=text; l.TextColor3=Theme.Accent; l.Font=Enum.Font.GothamBold; l.TextSize=12; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=sFrame
         end
 
-        SecTitle("🎨 สี Accent")
-        local cP={{"🟣 Purple",Color3.fromRGB(100,60,200)},{"🔵 Blue",Color3.fromRGB(50,120,220)},{"🟢 Green",Color3.fromRGB(50,180,100)},{"🔴 Red",Color3.fromRGB(200,60,60)},{"🟠 Orange",Color3.fromRGB(220,120,40)},{"🩷 Pink",Color3.fromRGB(220,80,160)}}
-        local cRow=Instance.new("Frame"); cRow.BackgroundColor3=Theme.Secondary; cRow.Size=UDim2.new(1,0,0,48); cRow.Parent=sFrame; CC(cRow,8); CS(cRow,Theme.Border)
-        local cl=Instance.new("UIListLayout"); cl.FillDirection=Enum.FillDirection.Horizontal; cl.Padding=UDim.new(0,6); cl.VerticalAlignment=Enum.VerticalAlignment.Center; cl.HorizontalAlignment=Enum.HorizontalAlignment.Center; cl.Parent=cRow
-        for _,p in ipairs(cP) do
-            local dot=Instance.new("TextButton"); dot.BackgroundColor3=p[2]; dot.Size=UDim2.new(0,28,0,28); dot.Text=""; dot.Parent=cRow; CC(dot,14)
-            dot.MouseButton1Click:Connect(function()
-                Theme.Accent=p[2]; Theme.TabActive=p[2]; Theme.Toggle_ON=p[2]; Theme.Slider_Fill=p[2]; Theme.Notif_Border=p[2]
-                for n,btn in pairs(tabButtons) do if n==activeTab then Tween(btn,{BackgroundColor3=p[2]},0.2) end end
-                EclipseLib:Notify({Title="🎨 เปลี่ยนสีแล้ว",Content="เปลี่ยนเป็น "..p[1],Duration=2,Type="success"})
+        -- ค่า default เก็บไว้สำหรับ Reset
+        local DefaultTheme = {
+            Background  = Color3.fromRGB(15,15,20),
+            Secondary   = Color3.fromRGB(22,22,30),
+            Accent      = Color3.fromRGB(100,60,200),
+            AccentHover = Color3.fromRGB(120,80,220),
+            Text        = Color3.fromRGB(220,220,235),
+            SubText     = Color3.fromRGB(140,140,160),
+            Border      = Color3.fromRGB(50,40,80),
+            TabActive   = Color3.fromRGB(100,60,200),
+            TabInactive = Color3.fromRGB(30,28,40),
+            Toggle_ON   = Color3.fromRGB(100,60,200),
+            Toggle_OFF  = Color3.fromRGB(50,45,65),
+            Slider_Fill = Color3.fromRGB(100,60,200),
+            Slider_BG   = Color3.fromRGB(35,32,50),
+            Notif_BG    = Color3.fromRGB(20,18,30),
+            Notif_Border= Color3.fromRGB(100,60,200),
+            Input_BG    = Color3.fromRGB(28,25,40),
+            Dropdown_BG = Color3.fromRGB(25,22,38),
+        }
+        local currentTransparency = 0
+        local currentSize = UDim2.new(0,500,0,350)
+        local currentNotifPos = UDim2.new(1,-220,0,60)
+
+        -- ฟังก์ชัน apply accent ไปทุกส่วน
+        local function ApplyAccent(c)
+            Theme.Accent=c; Theme.TabActive=c; Theme.Toggle_ON=c; Theme.Slider_Fill=c; Theme.Notif_Border=c; Theme.AccentHover=c
+            for n,btn in pairs(tabButtons) do
+                if n==activeTab then Tween(btn,{BackgroundColor3=c},0.2) end
+            end
+        end
+
+        -- ════════════════════════
+        -- 🎨 Preset Themes
+        -- ════════════════════════
+        SecTitle("🎨 Preset Themes")
+        local Themes = {
+            {
+                name="🌒 Eclipse", accent=Color3.fromRGB(100,60,200),
+                bg=Color3.fromRGB(15,15,20), sec=Color3.fromRGB(22,22,30),
+                border=Color3.fromRGB(50,40,80), inactive=Color3.fromRGB(30,28,40),
+            },
+            {
+                name="🌊 Ocean", accent=Color3.fromRGB(30,120,220),
+                bg=Color3.fromRGB(10,18,28), sec=Color3.fromRGB(15,28,42),
+                border=Color3.fromRGB(20,60,100), inactive=Color3.fromRGB(18,32,50),
+            },
+            {
+                name="🌲 Forest", accent=Color3.fromRGB(40,170,90),
+                bg=Color3.fromRGB(10,18,12), sec=Color3.fromRGB(15,26,18),
+                border=Color3.fromRGB(25,70,35), inactive=Color3.fromRGB(18,32,20),
+            },
+            {
+                name="🔥 Inferno", accent=Color3.fromRGB(220,80,30),
+                bg=Color3.fromRGB(20,10,8), sec=Color3.fromRGB(30,15,10),
+                border=Color3.fromRGB(80,30,15), inactive=Color3.fromRGB(35,18,12),
+            },
+            {
+                name="🌸 Sakura", accent=Color3.fromRGB(220,80,140),
+                bg=Color3.fromRGB(20,12,18), sec=Color3.fromRGB(30,18,26),
+                border=Color3.fromRGB(80,30,60), inactive=Color3.fromRGB(35,18,30),
+            },
+            {
+                name="🖤 Midnight", accent=Color3.fromRGB(160,160,180),
+                bg=Color3.fromRGB(8,8,10), sec=Color3.fromRGB(14,14,18),
+                border=Color3.fromRGB(40,40,50), inactive=Color3.fromRGB(20,20,26),
+            },
+        }
+
+        local thCard=Instance.new("Frame"); thCard.BackgroundColor3=Theme.Secondary; thCard.Size=UDim2.new(1,0,0,120); thCard.Parent=sFrame; CC(thCard,8); CS(thCard,Theme.Border)
+        local thLy=Instance.new("UIGridLayout"); thLy.CellSize=UDim2.new(0.31,0,0,48); thLy.CellPadding=UDim2.new(0.02,0,0,6); thLy.SortOrder=Enum.SortOrder.LayoutOrder; thLy.Parent=thCard
+        local thPd=Instance.new("UIPadding"); thPd.PaddingTop=UDim.new(0,8); thPd.PaddingLeft=UDim.new(0,6); thPd.PaddingRight=UDim.new(0,6); thPd.Parent=thCard
+
+        for _,th in ipairs(Themes) do
+            local tb=Instance.new("TextButton"); tb.BackgroundColor3=th.bg; tb.Size=UDim2.new(1,0,1,0); tb.Text=th.name; tb.TextColor3=Color3.fromRGB(220,220,235); tb.Font=Enum.Font.GothamBold; tb.TextSize=10; tb.TextWrapped=true; tb.Parent=thCard; CC(tb,7); CS(tb,th.accent,1.5)
+            tb.MouseButton1Click:Connect(function()
+                Theme.Background=th.bg; Theme.Secondary=th.sec; Theme.Border=th.border; Theme.TabInactive=th.inactive
+                Theme.Dropdown_BG=th.sec; Theme.Input_BG=th.sec; Theme.Slider_BG=th.sec
+                Tween(Main,{BackgroundColor3=th.bg},0.3)
+                ApplyAccent(th.accent)
+                EclipseLib:Notify({Title="🎨 เปลี่ยน Theme แล้ว",Content=th.name,Duration=2,Type="success"})
             end)
         end
 
+        -- ════════════════════════
+        -- 🖌️ Custom Color (RGB Slider)
+        -- ════════════════════════
+        SecTitle("🖌️ Custom Accent Color")
+        local rgbCard=Instance.new("Frame"); rgbCard.BackgroundColor3=Theme.Secondary; rgbCard.Size=UDim2.new(1,0,0,150); rgbCard.Parent=sFrame; CC(rgbCard,8); CS(rgbCard,Theme.Border)
+
+        -- Preview สี
+        local prevFrame=Instance.new("Frame"); prevFrame.BackgroundColor3=Theme.Accent; prevFrame.Size=UDim2.new(1,-20,0,22); prevFrame.Position=UDim2.new(0,10,0,8); prevFrame.Parent=rgbCard; CC(prevFrame,6)
+        local prevLbl=Instance.new("TextLabel"); prevLbl.BackgroundTransparency=1; prevLbl.Size=UDim2.new(1,0,1,0); prevLbl.Text="Preview"; prevLbl.TextColor3=Color3.fromRGB(255,255,255); prevLbl.Font=Enum.Font.GothamBold; prevLbl.TextSize=11; prevLbl.Parent=prevFrame
+
+        local rVal,gVal,bVal = 100,60,200
+
+        local function UpdatePreview()
+            local c=Color3.fromRGB(rVal,gVal,bVal)
+            prevFrame.BackgroundColor3=c
+            prevLbl.Text="R:"..rVal.."  G:"..gVal.."  B:"..bVal
+        end
+
+        local function MakeRGBSlider(label, yPos, initVal, onChange)
+            local lbl=Instance.new("TextLabel"); lbl.BackgroundTransparency=1; lbl.Position=UDim2.new(0,10,0,yPos); lbl.Size=UDim2.new(0,18,0,16); lbl.Text=label; lbl.TextColor3=Theme.SubText; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=11; lbl.Parent=rgbCard
+            local valLbl=Instance.new("TextLabel"); valLbl.BackgroundTransparency=1; valLbl.Position=UDim2.new(1,-36,0,yPos); valLbl.Size=UDim2.new(0,30,0,16); valLbl.Text=tostring(initVal); valLbl.TextColor3=Theme.Text; valLbl.Font=Enum.Font.GothamBold; valLbl.TextSize=11; valLbl.TextXAlignment=Enum.TextXAlignment.Right; valLbl.Parent=rgbCard
+            local tr=Instance.new("Frame"); tr.BackgroundColor3=Theme.Slider_BG; tr.Size=UDim2.new(1,-62,0,8); tr.Position=UDim2.new(0,30,0,yPos+4); tr.Parent=rgbCard; CC(tr,4)
+            -- สีแถบตาม channel
+            local fillColor = label=="R" and Color3.fromRGB(220,60,60) or label=="G" and Color3.fromRGB(60,200,80) or Color3.fromRGB(60,120,220)
+            local fi=Instance.new("Frame"); fi.BackgroundColor3=fillColor; fi.Size=UDim2.new(initVal/255,0,1,0); fi.Parent=tr; CC(fi,4)
+            local drag=false
+            local function upd(pos)
+                local r=math.clamp((pos.X-tr.AbsolutePosition.X)/tr.AbsoluteSize.X,0,1)
+                local v=math.floor(r*255); fi.Size=UDim2.new(r,0,1,0); valLbl.Text=tostring(v)
+                onChange(v); UpdatePreview()
+            end
+            tr.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=true; upd(i.Position) end end)
+            UserInputService.InputChanged:Connect(function(i) if drag and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then upd(i.Position) end end)
+            UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=false end end)
+        end
+
+        MakeRGBSlider("R", 38, rVal, function(v) rVal=v end)
+        MakeRGBSlider("G", 64, gVal, function(v) gVal=v end)
+        MakeRGBSlider("B", 90, bVal, function(v) bVal=v end)
+
+        local applyBtn=Instance.new("TextButton"); applyBtn.BackgroundColor3=Theme.Accent; applyBtn.Size=UDim2.new(1,-20,0,28); applyBtn.Position=UDim2.new(0,10,0,116); applyBtn.Text="🎨 ใช้สีนี้"; applyBtn.TextColor3=Color3.fromRGB(255,255,255); applyBtn.Font=Enum.Font.GothamBold; applyBtn.TextSize=12; applyBtn.Parent=rgbCard; CC(applyBtn,7)
+        applyBtn.MouseButton1Click:Connect(function()
+            local c=Color3.fromRGB(rVal,gVal,bVal)
+            ApplyAccent(c); applyBtn.BackgroundColor3=c
+            EclipseLib:Notify({Title="🎨 ใช้สีแล้ว!",Content="R:"..rVal.." G:"..gVal.." B:"..bVal,Duration=2,Type="success"})
+        end)
+
+        -- ════════════════════════
+        -- 📏 ขนาด UI
+        -- ════════════════════════
         SecTitle("📏 ขนาด UI")
         local szP={{"เล็ก",UDim2.new(0,420,0,300)},{"กลาง",UDim2.new(0,500,0,350)},{"ใหญ่",UDim2.new(0,600,0,420)}}
         local szRow=Instance.new("Frame"); szRow.BackgroundColor3=Theme.Secondary; szRow.Size=UDim2.new(1,0,0,48); szRow.Parent=sFrame; CC(szRow,8); CS(szRow,Theme.Border)
-        local sl=Instance.new("UIListLayout"); sl.FillDirection=Enum.FillDirection.Horizontal; sl.Padding=UDim.new(0,6); sl.VerticalAlignment=Enum.VerticalAlignment.Center; sl.HorizontalAlignment=Enum.HorizontalAlignment.Center; sl.Parent=szRow
+        local sl2=Instance.new("UIListLayout"); sl2.FillDirection=Enum.FillDirection.Horizontal; sl2.Padding=UDim.new(0,6); sl2.VerticalAlignment=Enum.VerticalAlignment.Center; sl2.HorizontalAlignment=Enum.HorizontalAlignment.Center; sl2.Parent=szRow
         for _,sz in ipairs(szP) do
             local b=Instance.new("TextButton"); b.BackgroundColor3=Theme.TabInactive; b.Size=UDim2.new(0,80,0,30); b.Text=sz[1]; b.TextColor3=Theme.Text; b.Font=Enum.Font.GothamBold; b.TextSize=12; b.Parent=szRow; CC(b,8)
-            b.MouseButton1Click:Connect(function() if isOpen then Tween(Main,{Size=sz[2]},0.3); Main.Position=UDim2.new(0.5,-sz[2].X.Offset/2,0.5,-sz[2].Y.Offset/2) end end)
+            b.MouseButton1Click:Connect(function()
+                if isOpen then
+                    currentSize=sz[2]
+                    Tween(Main,{Size=sz[2]},0.3)
+                    Main.Position=UDim2.new(0.5,-sz[2].X.Offset/2,0.5,-sz[2].Y.Offset/2)
+                end
+            end)
         end
 
+        -- ════════════════════════
+        -- 🔔 ตำแหน่ง Notification
+        -- ════════════════════════
         SecTitle("🔔 ตำแหน่ง Notification")
         local nP={{"มุมขวาบน",UDim2.new(1,-220,0,60)},{"มุมซ้ายบน",UDim2.new(0,10,0,60)}}
         local nRow=Instance.new("Frame"); nRow.BackgroundColor3=Theme.Secondary; nRow.Size=UDim2.new(1,0,0,48); nRow.Parent=sFrame; CC(nRow,8); CS(nRow,Theme.Border)
         local nl=Instance.new("UIListLayout"); nl.FillDirection=Enum.FillDirection.Horizontal; nl.Padding=UDim.new(0,6); nl.VerticalAlignment=Enum.VerticalAlignment.Center; nl.HorizontalAlignment=Enum.HorizontalAlignment.Center; nl.Parent=nRow
         for _,np in ipairs(nP) do
             local b=Instance.new("TextButton"); b.BackgroundColor3=Theme.TabInactive; b.Size=UDim2.new(0,110,0,30); b.Text=np[1]; b.TextColor3=Theme.Text; b.Font=Enum.Font.GothamBold; b.TextSize=11; b.Parent=nRow; CC(b,8)
-            b.MouseButton1Click:Connect(function() EnsureNotifHolder(); NotifHolder.Position=np[2]; EclipseLib:Notify({Title="🔔 เปลี่ยนตำแหน่งแล้ว",Content=np[1],Duration=2,Type="info"}) end)
+            b.MouseButton1Click:Connect(function()
+                currentNotifPos=np[2]
+                EnsureNotifHolder(); NotifHolder.Position=np[2]
+                EclipseLib:Notify({Title="🔔 เปลี่ยนตำแหน่งแล้ว",Content=np[1],Duration=2,Type="info"})
+            end)
         end
 
+        -- ════════════════════════
+        -- 🌗 ความโปร่งใส UI
+        -- ════════════════════════
         SecTitle("🌗 ความโปร่งใส UI")
         local tCard=Instance.new("Frame"); tCard.BackgroundColor3=Theme.Secondary; tCard.Size=UDim2.new(1,0,0,60); tCard.Parent=sFrame; CC(tCard,8); CS(tCard,Theme.Border)
         local tNL=Instance.new("TextLabel"); tNL.BackgroundTransparency=1; tNL.Position=UDim2.new(0,10,0,6); tNL.Size=UDim2.new(0.68,0,0,18); tNL.Text="ความโปร่งใสพื้นหลัง"; tNL.TextColor3=Theme.Text; tNL.Font=Enum.Font.GothamBold; tNL.TextSize=12; tNL.TextXAlignment=Enum.TextXAlignment.Left; tNL.Parent=tCard
@@ -546,8 +683,71 @@ function EclipseLib:CreateWindow(opts)
         local tFi=Instance.new("Frame"); tFi.BackgroundColor3=Theme.Slider_Fill; tFi.Size=UDim2.new(0,0,1,0); tFi.Parent=tTr; CC(tFi,4)
         local dT=false
         tTr.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dT=true end end)
-        UserInputService.InputChanged:Connect(function(i) if dT and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then local r=math.clamp((i.Position.X-tTr.AbsolutePosition.X)/tTr.AbsoluteSize.X,0,1); tFi.Size=UDim2.new(r,0,1,0); tVL.Text=math.floor(r*80).."%"; Tween(Main,{BackgroundTransparency=r*0.8},0.05) end end)
+        UserInputService.InputChanged:Connect(function(i)
+            if dT and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
+                local r=math.clamp((i.Position.X-tTr.AbsolutePosition.X)/tTr.AbsoluteSize.X,0,1)
+                currentTransparency=r*0.8; tFi.Size=UDim2.new(r,0,1,0); tVL.Text=math.floor(r*80).."%"
+                Tween(Main,{BackgroundTransparency=currentTransparency},0.05)
+            end
+        end)
         UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dT=false end end)
+
+        -- ════════════════════════
+        -- 🔄 Reset (ปุ่มแยกทีละอย่าง)
+        -- ════════════════════════
+        SecTitle("🔄 Reset การตั้งค่า")
+        local resetCard=Instance.new("Frame"); resetCard.BackgroundColor3=Theme.Secondary; resetCard.Size=UDim2.new(1,0,0,126); resetCard.Parent=sFrame; CC(resetCard,8); CS(resetCard,Theme.Border)
+        local resetLy=Instance.new("UIGridLayout"); resetLy.CellSize=UDim2.new(0.46,0,0,28); resetLy.CellPadding=UDim2.new(0.04,0,0,6); resetLy.SortOrder=Enum.SortOrder.LayoutOrder; resetLy.Parent=resetCard
+        local resetPd=Instance.new("UIPadding"); resetPd.PaddingTop=UDim.new(0,8); resetPd.PaddingLeft=UDim.new(0,8); resetPd.PaddingRight=UDim.new(0,8); resetPd.Parent=resetCard
+
+        local resetItems = {
+            {
+                label="🎨 Reset สี Theme",
+                fn=function()
+                    for k,v in pairs(DefaultTheme) do Theme[k]=v end
+                    Tween(Main,{BackgroundColor3=DefaultTheme.Background},0.3)
+                    for n,btn in pairs(tabButtons) do
+                        if n==activeTab then Tween(btn,{BackgroundColor3=DefaultTheme.TabActive},0.2)
+                        else Tween(btn,{BackgroundColor3=DefaultTheme.TabInactive},0.2) end
+                    end
+                    applyBtn.BackgroundColor3=DefaultTheme.Accent
+                    EclipseLib:Notify({Title="🔄 Reset แล้ว",Content="สี Theme กลับค่าเริ่มต้น",Duration=2,Type="info"})
+                end
+            },
+            {
+                label="📏 Reset ขนาด UI",
+                fn=function()
+                    currentSize=UDim2.new(0,500,0,350)
+                    Tween(Main,{Size=currentSize},0.3)
+                    Main.Position=UDim2.new(0.5,-250,0.5,-175)
+                    EclipseLib:Notify({Title="🔄 Reset แล้ว",Content="ขนาด UI กลับค่าเริ่มต้น",Duration=2,Type="info"})
+                end
+            },
+            {
+                label="🌗 Reset โปร่งใส",
+                fn=function()
+                    currentTransparency=0; tFi.Size=UDim2.new(0,0,1,0); tVL.Text="0%"
+                    Tween(Main,{BackgroundTransparency=0},0.3)
+                    EclipseLib:Notify({Title="🔄 Reset แล้ว",Content="ความโปร่งใสกลับค่าเริ่มต้น",Duration=2,Type="info"})
+                end
+            },
+            {
+                label="🔔 Reset Notif",
+                fn=function()
+                    currentNotifPos=UDim2.new(1,-220,0,60)
+                    EnsureNotifHolder(); NotifHolder.Position=currentNotifPos
+                    EclipseLib:Notify({Title="🔄 Reset แล้ว",Content="ตำแหน่ง Notification กลับค่าเริ่มต้น",Duration=2,Type="info"})
+                end
+            },
+        }
+
+        for _,item in ipairs(resetItems) do
+            local rb=Instance.new("TextButton"); rb.BackgroundColor3=Color3.fromRGB(50,30,80); rb.Size=UDim2.new(1,0,1,0); rb.Text=item.label; rb.TextColor3=Theme.Text; rb.Font=Enum.Font.GothamBold; rb.TextSize=10; rb.TextWrapped=true; rb.Parent=resetCard; CC(rb,7); CS(rb,Theme.Border,1)
+            rb.MouseButton1Click:Connect(function()
+                Tween(rb,{BackgroundColor3=Color3.fromRGB(80,40,120)},0.1); task.wait(0.15); Tween(rb,{BackgroundColor3=Color3.fromRGB(50,30,80)},0.2)
+                item.fn()
+            end)
+        end
 
         -- ════════════════════════════════
         -- 💾 Save / Load Config
@@ -748,10 +948,151 @@ function EclipseLib:CreateWindow(opts)
             local A={}; function A:GetValue() return box.Text end; function A:SetValue(v) box.Text=v end; return A
         end
 
+        -- 📄 Paragraph (Title + Content หลายบรรทัด)
+        function TabAPI:AddParagraph(o)
+            o=o or {}
+            local titleText=o.Title or ""; local contentText=o.Content or ""
+            -- คำนวณความสูงอัตโนมัติ (ประมาณ 16px ต่อบรรทัด content)
+            local lines=math.max(1,math.ceil(#contentText/42))
+            local h=46+(lines*16)
+            local card=BaseCard(h)
+            local tL=Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,10,0,8); tL.Size=UDim2.new(1,-20,0,18); tL.Text=titleText; tL.TextColor3=Theme.Text; tL.Font=Enum.Font.GothamBold; tL.TextSize=13; tL.TextXAlignment=Enum.TextXAlignment.Left; tL.Parent=card
+            local sep=Instance.new("Frame"); sep.BackgroundColor3=Theme.Border; sep.Size=UDim2.new(1,-20,0,1); sep.Position=UDim2.new(0,10,0,28); sep.BorderSizePixel=0; sep.Parent=card
+            local cL=Instance.new("TextLabel"); cL.BackgroundTransparency=1; cL.Position=UDim2.new(0,10,0,32); cL.Size=UDim2.new(1,-20,0,h-38); cL.Text=contentText; cL.TextColor3=Theme.SubText; cL.Font=Enum.Font.Gotham; cL.TextSize=12; cL.TextXAlignment=Enum.TextXAlignment.Left; cL.TextWrapped=true; cL.Parent=card
+            local A={}
+            function A:SetTitle(t) tL.Text=t end
+            function A:SetContent(t) cL.Text=t end
+            return A
+        end
+
+        -- 🎨 ColorPicker (RGB Slider แบบ inline ใน Tab)
+        function TabAPI:AddColorPicker(o)
+            o=o or {}
+            local defColor=o.Default or Color3.fromRGB(100,60,200)
+            local rV=math.floor(defColor.R*255); local gV=math.floor(defColor.G*255); local bV=math.floor(defColor.B*255)
+            local card=BaseCard(162)
+            local nL=Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6); nL.Size=UDim2.new(0.6,0,0,18); nL.Text=o.Name or "ColorPicker"; nL.TextColor3=Theme.Text; nL.Font=Enum.Font.GothamBold; nL.TextSize=13; nL.TextXAlignment=Enum.TextXAlignment.Left; nL.Parent=card
+            -- Preview box
+            local prev=Instance.new("Frame"); prev.BackgroundColor3=defColor; prev.Size=UDim2.new(0,36,0,20); prev.Position=UDim2.new(1,-46,0,6); prev.Parent=card; CC(prev,5); CS(prev,Theme.Border,1)
+            local function UpdateColor()
+                local c=Color3.fromRGB(rV,gV,bV); prev.BackgroundColor3=c
+                if o.Callback then o.Callback(c) end
+            end
+            local function MakeCPSlider(label,yP,initV,col,onChange)
+                local lbl=Instance.new("TextLabel"); lbl.BackgroundTransparency=1; lbl.Position=UDim2.new(0,10,0,yP); lbl.Size=UDim2.new(0,14,0,14); lbl.Text=label; lbl.TextColor3=col; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=11; lbl.Parent=card
+                local vLb=Instance.new("TextLabel"); vLb.BackgroundTransparency=1; vLb.Position=UDim2.new(1,-38,0,yP); vLb.Size=UDim2.new(0,32,0,14); vLb.Text=tostring(initV); vLb.TextColor3=Theme.SubText; vLb.Font=Enum.Font.GothamBold; vLb.TextSize=10; vLb.TextXAlignment=Enum.TextXAlignment.Right; vLb.Parent=card
+                local tr=Instance.new("Frame"); tr.BackgroundColor3=Theme.Slider_BG; tr.Size=UDim2.new(1,-58,0,7); tr.Position=UDim2.new(0,26,0,yP+4); tr.Parent=card; CC(tr,3)
+                local fi=Instance.new("Frame"); fi.BackgroundColor3=col; fi.Size=UDim2.new(initV/255,0,1,0); fi.Parent=tr; CC(fi,3)
+                local drag=false
+                local function upd(pos) local r=math.clamp((pos.X-tr.AbsolutePosition.X)/tr.AbsoluteSize.X,0,1); local v=math.floor(r*255); fi.Size=UDim2.new(r,0,1,0); vLb.Text=tostring(v); onChange(v); UpdateColor() end
+                tr.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=true; upd(i.Position) end end)
+                UserInputService.InputChanged:Connect(function(i) if drag and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then upd(i.Position) end end)
+                UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=false end end)
+            end
+            MakeCPSlider("R",34,rV,Color3.fromRGB(220,60,60),function(v) rV=v end)
+            MakeCPSlider("G",60,gV,Color3.fromRGB(60,200,80),function(v) gV=v end)
+            MakeCPSlider("B",86,bV,Color3.fromRGB(60,120,220),function(v) bV=v end)
+            -- Hex display
+            local hexLbl=Instance.new("TextLabel"); hexLbl.BackgroundTransparency=1; hexLbl.Position=UDim2.new(0,10,0,110); hexLbl.Size=UDim2.new(1,-20,0,16); hexLbl.Text="Color3.fromRGB("..rV..","..gV..","..bV..")"; hexLbl.TextColor3=Theme.SubText; hexLbl.Font=Enum.Font.Code; hexLbl.TextSize=10; hexLbl.TextXAlignment=Enum.TextXAlignment.Left; hexLbl.Parent=card
+            -- ปุ่ม Copy Color3
+            local copyBtn=Instance.new("TextButton"); copyBtn.BackgroundColor3=Theme.Secondary; copyBtn.Size=UDim2.new(1,-20,0,26); copyBtn.Position=UDim2.new(0,10,0,130); copyBtn.Text="📋 Copy Color3"; copyBtn.TextColor3=Theme.Text; copyBtn.Font=Enum.Font.GothamBold; copyBtn.TextSize=11; copyBtn.Parent=card; CC(copyBtn,7); CS(copyBtn,Theme.Border,1)
+            -- update hex realtime
+            RunService.Heartbeat:Connect(function()
+                local t="Color3.fromRGB("..rV..","..gV..","..bV..")"
+                if hexLbl.Text~=t then hexLbl.Text=t end
+            end)
+            copyBtn.MouseButton1Click:Connect(function()
+                SetClipboard("Color3.fromRGB("..rV..","..gV..","..bV..")")
+                local old=copyBtn.Text; copyBtn.Text="✅ คัดลอกแล้ว!"
+                Tween(copyBtn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.15); task.wait(1.5); copyBtn.Text=old; Tween(copyBtn,{BackgroundColor3=Theme.Secondary},0.15)
+            end)
+            local A={}; function A:GetColor() return Color3.fromRGB(rV,gV,bV) end; return A
+        end
+
+        -- ⌨️ Keybind (คอม = keyboard, มือถือ = ปุ่มกด)
+        function TabAPI:AddKeybind(o)
+            o=o or {}
+            local currentKey=o.Default or Enum.KeyCode.F
+            local isListening=false
+            local isMobile=UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+            local card=BaseCard(50)
+            local nL=Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6); nL.Size=UDim2.new(0.55,0,0,18); nL.Text=o.Name or "Keybind"; nL.TextColor3=Theme.Text; nL.Font=Enum.Font.GothamBold; nL.TextSize=13; nL.TextXAlignment=Enum.TextXAlignment.Left; nL.Parent=card
+            local dL=Instance.new("TextLabel"); dL.BackgroundTransparency=1; dL.Position=UDim2.new(0,10,0,26); dL.Size=UDim2.new(0.55,0,0,16); dL.Text=o.Description or ""; dL.TextColor3=Theme.SubText; dL.Font=Enum.Font.Gotham; dL.TextSize=10; dL.TextXAlignment=Enum.TextXAlignment.Left; dL.Parent=card
+            local keyBtn=Instance.new("TextButton"); keyBtn.Size=UDim2.new(0,80,0,28); keyBtn.Position=UDim2.new(1,-90,0.5,-14); keyBtn.Font=Enum.Font.GothamBold; keyBtn.TextSize=11; keyBtn.TextColor3=Color3.fromRGB(255,255,255); keyBtn.Parent=card; CC(keyBtn,7)
+
+            if isMobile then
+                -- มือถือ: ปุ่มกดตรงๆ เรียก callback เลย
+                keyBtn.BackgroundColor3=Theme.Accent; keyBtn.Text="▶ กด"
+                keyBtn.MouseButton1Click:Connect(function()
+                    Tween(keyBtn,{BackgroundColor3=Theme.AccentHover},0.1); task.wait(0.1); Tween(keyBtn,{BackgroundColor3=Theme.Accent},0.15)
+                    if o.Callback then o.Callback() end
+                end)
+            else
+                -- คอม: แสดงปุ่มลัด กด bind ใหม่ได้
+                keyBtn.BackgroundColor3=Color3.fromRGB(40,36,60)
+                keyBtn.Text="["..tostring(currentKey.Name).."]"
+                CS(keyBtn,Theme.Accent,1.5)
+                keyBtn.MouseButton1Click:Connect(function()
+                    if isListening then return end
+                    isListening=true; keyBtn.Text="[...]"; keyBtn.BackgroundColor3=Color3.fromRGB(80,40,120)
+                    local conn; conn=UserInputService.InputBegan:Connect(function(input,gp)
+                        if gp then return end
+                        if input.UserInputType==Enum.UserInputType.Keyboard then
+                            currentKey=input.KeyCode
+                            keyBtn.Text="["..tostring(currentKey.Name).."]"
+                            keyBtn.BackgroundColor3=Color3.fromRGB(40,36,60)
+                            isListening=false; conn:Disconnect()
+                        end
+                    end)
+                end)
+                -- รับ input จากคีย์บอร์ด
+                UserInputService.InputBegan:Connect(function(input,gp)
+                    if gp or isListening then return end
+                    if input.UserInputType==Enum.UserInputType.Keyboard and input.KeyCode==currentKey then
+                        if o.Callback then o.Callback() end
+                    end
+                end)
+            end
+            local A={}
+            function A:GetKey() return currentKey end
+            function A:SetKey(k) currentKey=k; if not isMobile then keyBtn.Text="["..tostring(k.Name).."]" end end
+            return A
+        end
+
         return TabAPI
     end
 
+    -- ══════════════════════════════════════
+    -- 🪟 Window API
+    -- ══════════════════════════════════════
     function WindowObj:Notify(o) EclipseLib:Notify(o) end
+
+    -- Show / Hide / Toggle
+    function WindowObj:Show()
+        Main.Visible=true; Main.Size=UDim2.new(0,500,0,0)
+        Tween(Main,{Size=UDim2.new(0,500,0,350)},0.35,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+        floatBtn.Visible=false; isOpen=true; MinBtn.Text="—"
+    end
+    function WindowObj:Hide()
+        Tween(Main,{Size=UDim2.new(0,500,0,0)},0.25); task.delay(0.3,function()
+            Main.Visible=false; floatBtn.Visible=true
+        end)
+    end
+    function WindowObj:Toggle()
+        if Main.Visible then self:Hide() else self:Show() end
+    end
+
+    -- Destroy / Cleanup ทุกอย่าง
+    function WindowObj:Destroy()
+        pcall(function() ScreenGui:Destroy() end)
+        pcall(function() floatSG:Destroy() end)
+        pcall(function()
+            EnsureNotifHolder()
+            if NotifHolder and NotifHolder.Parent then
+                NotifHolder.Parent:Destroy()
+            end
+        end)
+    end
 
     local function OpenMainUI()
         Main.Visible=true; Main.Size=UDim2.new(0,500,0,0)
