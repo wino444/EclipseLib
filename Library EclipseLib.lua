@@ -1,9 +1,11 @@
 -- 🌒 EclipseLib
--- Version: 5.0.0
+-- Version: 5.2.0
 -- Theme: Dark but Radiant
 
 local EclipseLib = {}
 EclipseLib.__index = EclipseLib
+
+local EclipseFragment = loadstring(game:HttpGet('https://raw.githubusercontent.com/wino444/EclipseLib/main/EclipseLib%20Fragment.lua'))()
 
 -- ═══════════════════════════════════════
 -- 🎬 Intro Config (เจ้าของโค้ดเปลี่ยนได้เท่านั้น)
@@ -440,6 +442,58 @@ function EclipseLib:CreateWindow(opts)
     -- Window Object
     local WindowObj={}; local tabButtons={}; local tabFrames={}; local activeTab=nil
 
+    -- ══════════════════════════════════════
+    -- 🎨 ThemeRefs — ระบบเปลี่ยนสีทั้ง UI
+    -- ══════════════════════════════════════
+    local TR={
+        backgrounds={Main},  -- Frame พื้นหลัง BG
+        secondaries={TopBar,tbFix,TabBar}, -- secondary color
+        accents={floatBtn},  -- accent color
+        borders={},          -- UIStroke
+        texts={TitleLbl},    -- text หลัก
+        subtexts={},         -- text รอง
+        tabInactive={},      -- tab ที่ไม่ active
+        tabActive={},        -- tab ที่ active
+    }
+    -- register UIStroke ของ Main และ TabBar
+    for _,v in ipairs(Main:GetDescendants()) do
+        if v:IsA("UIStroke") then table.insert(TR.borders,v) end
+    end
+
+    local function ApplyThemeAll(th)
+        -- พื้นหลัง
+        for _,f in ipairs(TR.backgrounds) do pcall(function() Tween(f,{BackgroundColor3=th.bg or Theme.Background},0.3) end) end
+        -- secondary
+        for _,f in ipairs(TR.secondaries) do pcall(function() Tween(f,{BackgroundColor3=th.sec or Theme.Secondary},0.3) end) end
+        -- accent (Frame และ TextLabel)
+        for _,f in ipairs(TR.accents) do pcall(function()
+            if f:IsA("TextLabel") or f:IsA("TextButton") then f.TextColor3=th.accent or Theme.Accent
+            else Tween(f,{BackgroundColor3=th.accent or Theme.Accent},0.3) end
+        end) end
+        -- border (UIStroke และ pseudo Frame)
+        for _,s in ipairs(TR.borders) do pcall(function()
+            if s._isPseudo then s._frame.BackgroundColor3=th.border or Theme.Border
+            else s.Color=th.border or Theme.Border end
+        end) end
+        -- text
+        for _,l in ipairs(TR.texts) do pcall(function() l.TextColor3=th.text or Theme.Text end) end
+        -- subtext
+        for _,l in ipairs(TR.subtexts) do pcall(function() l.TextColor3=th.subtext or Theme.SubText end) end
+        -- tab buttons
+        for n,btn in pairs(tabButtons) do
+            if n==activeTab then pcall(function() Tween(btn,{BackgroundColor3=th.accent or Theme.Accent},0.2) end)
+            else pcall(function() Tween(btn,{BackgroundColor3=th.inactive or Theme.TabInactive},0.2) end) end
+        end
+    end
+
+    -- helper ลง register
+    local function RegBG(f) table.insert(TR.backgrounds,f) end
+    local function RegSec(f) table.insert(TR.secondaries,f) end
+    local function RegAccent(f) table.insert(TR.accents,f) end
+    local function RegBorder(s) table.insert(TR.borders,s) end
+    local function RegText(l) table.insert(TR.texts,l) end
+    local function RegSub(l) table.insert(TR.subtexts,l) end
+
     local function SetActiveTab(name)
         for n,btn in pairs(tabButtons) do
             if n==name then Tween(btn,{BackgroundColor3=Theme.TabActive},0.2); btn.TextColor3=Color3.fromRGB(255,255,255)
@@ -458,7 +512,8 @@ function EclipseLib:CreateWindow(opts)
     end
 
     local function MakeTabBtn(label,active)
-        local btn=Instance.new("TextButton"); btn.BackgroundColor3=active and Theme.TabActive or Theme.TabInactive; btn.Size=UDim2.new(1,0,0,34); btn.Text=label; btn.TextColor3=active and Color3.fromRGB(255,255,255) or Theme.SubText; btn.Font=Enum.Font.GothamBold; btn.TextSize=11; btn.TextWrapped=true; btn.Parent=TabBar; CC(btn,8); return btn
+        local btn=Instance.new("TextButton"); btn.BackgroundColor3=active and Theme.TabActive or Theme.TabInactive; btn.Size=UDim2.new(1,0,0,34); btn.Text=label; btn.TextColor3=active and Color3.fromRGB(255,255,255) or Theme.SubText; btn.Font=Enum.Font.GothamBold; btn.TextSize=11; btn.TextWrapped=true; btn.Parent=TabBar; CC(btn,8)
+        RegSec(btn); return btn
     end
 
     -- ══════════════════════════════════════
@@ -468,22 +523,29 @@ function EclipseLib:CreateWindow(opts)
         local wBtn=MakeTabBtn("🏠 ยินดีต้อนรับ",true); local wFrame=MakeSF("Frame_Welcome"); wFrame.Visible=true
         tabButtons["_Welcome"]=wBtn; tabFrames["_Welcome"]=wFrame; activeTab="_Welcome"
         local aCard=Instance.new("Frame"); aCard.BackgroundColor3=Theme.Secondary; aCard.Size=UDim2.new(1,0,0,84); aCard.Parent=wFrame; CC(aCard,12); CS(aCard,Theme.Border)
+        RegSec(aCard)
         local aFr=Instance.new("Frame"); aFr.BackgroundColor3=Theme.Accent; aFr.Size=UDim2.new(0,62,0,62); aFr.Position=UDim2.new(0,11,0.5,-31); aFr.Parent=aCard; CC(aFr,31); CS(aFr,Theme.Accent,2)
+        RegAccent(aFr)
         local aImg=Instance.new("ImageLabel"); aImg.BackgroundTransparency=1; aImg.Size=UDim2.new(1,-4,1,-4); aImg.Position=UDim2.new(0,2,0,2); aImg.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..tostring(LocalPlayer.UserId).."&width=150&height=150&format=png"; aImg.Parent=aFr; CC(aImg,29)
         local dN=Instance.new("TextLabel"); dN.BackgroundTransparency=1; dN.Position=UDim2.new(0,86,0,14); dN.Size=UDim2.new(1,-96,0,22); dN.Text=LocalPlayer.DisplayName or "?"; dN.TextColor3=Theme.Text; dN.Font=Enum.Font.GothamBold; dN.TextSize=16; dN.TextXAlignment=Enum.TextXAlignment.Left; dN.Parent=aCard
+        RegText(dN)
         local uN=Instance.new("TextLabel"); uN.BackgroundTransparency=1; uN.Position=UDim2.new(0,86,0,38); uN.Size=UDim2.new(1,-96,0,16); uN.Text="@"..(LocalPlayer.Name or "?"); uN.TextColor3=Theme.SubText; uN.Font=Enum.Font.Gotham; uN.TextSize=12; uN.TextXAlignment=Enum.TextXAlignment.Left; uN.Parent=aCard
+        RegSub(uN)
         local idB=Instance.new("Frame"); idB.BackgroundColor3=Theme.Accent; idB.Size=UDim2.new(0,100,0,18); idB.Position=UDim2.new(0,86,0,58); idB.Parent=aCard; CC(idB,6)
         local idL=Instance.new("TextLabel"); idL.BackgroundTransparency=1; idL.Size=UDim2.new(1,0,1,0); idL.Text="🆔 "..tostring(LocalPlayer.UserId); idL.TextColor3=Color3.fromRGB(255,255,255); idL.Font=Enum.Font.GothamBold; idL.TextSize=10; idL.Parent=idB
 
         local function MakeInfoCard(icon,label,valFn)
             local c=Instance.new("Frame"); c.BackgroundColor3=Theme.Secondary; c.Size=UDim2.new(1,0,0,54); c.Parent=wFrame; CC(c,10); CS(c,Theme.Border)
+            RegSec(c)
             local iL=Instance.new("TextLabel"); iL.BackgroundTransparency=1; iL.Position=UDim2.new(0,8,0,0); iL.Size=UDim2.new(0,30,1,0); iL.Text=icon; iL.TextSize=20; iL.Font=Enum.Font.GothamBold; iL.Parent=c
             local kL=Instance.new("TextLabel"); kL.BackgroundTransparency=1; kL.Position=UDim2.new(0,44,0,7); kL.Size=UDim2.new(1,-50,0,16); kL.Text=label; kL.TextColor3=Theme.SubText; kL.TextSize=10; kL.Font=Enum.Font.Gotham; kL.TextXAlignment=Enum.TextXAlignment.Left; kL.Parent=c
+            RegSub(kL)
             local vL=Instance.new("TextLabel"); vL.BackgroundTransparency=1; vL.Position=UDim2.new(0,44,0,24); vL.Size=UDim2.new(1,-50,0,22); vL.Text=tostring(valFn()); vL.TextColor3=Theme.Text; vL.TextSize=13; vL.Font=Enum.Font.GothamBold; vL.TextXAlignment=Enum.TextXAlignment.Left; vL.Parent=c
+            RegText(vL)
             RunService.Heartbeat:Connect(function() local v=tostring(valFn()); if vL.Text~=v then vL.Text=v end end)
         end
 
-        -- 🗺️ ชื่อแมพ (แก้ไขแล้ว: fallback หลายชั้น)
+        -- 🗺️ ชื่อแมพ (fallback หลายชั้น)
         MakeInfoCard("🗺️","ชื่อแมพ",function()
             local name=""
             pcall(function() name=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
@@ -492,6 +554,43 @@ function EclipseLib:CreateWindow(opts)
             return name
         end)
         MakeInfoCard("📍","Place ID",function() return tostring(game.PlaceId) end)
+
+        -- ⏳ อายุบัญชี (แปลงจากวันเป็น ปี เดือน วัน)
+        MakeInfoCard("⏳","อายุบัญชี",function()
+            local days=LocalPlayer.AccountAge or 0
+            local years=math.floor(days/365); local remain=days-(years*365)
+            local months=math.floor(remain/30); local d=remain-(months*30)
+            local result=""
+            if years>0 then result=result..years.." ปี " end
+            if months>0 then result=result..months.." เดือน " end
+            result=result..d.." วัน"
+            return result
+        end)
+
+        -- 🖥️ Server ID
+        MakeInfoCard("🖥️","Server ID",function()
+            local jid=game.JobId
+            return (jid and jid~="") and jid or "ไม่พบ"
+        end)
+
+        -- ⏱️ เวลาที่เล่น (นับตั้งแต่รัน)
+        local sessionStart=tick()
+        MakeInfoCard("⏱️","เวลาที่เล่น",function()
+            local elapsed=math.floor(tick()-sessionStart)
+            local d=math.floor(elapsed/86400); elapsed=elapsed-(d*86400)
+            local h=math.floor(elapsed/3600); elapsed=elapsed-(h*3600)
+            local m=math.floor(elapsed/60)
+            local result=""
+            if d>0 then result=result..d.." วัน " end
+            if h>0 then result=result..h.." ชั่วโมง " end
+            result=result..m.." นาที"
+            return result
+        end)
+
+        -- 🏷️ เครดิต
+        local creditCard=Instance.new("Frame"); creditCard.BackgroundColor3=Theme.Secondary; creditCard.Size=UDim2.new(1,0,0,36); creditCard.Parent=wFrame; CC(creditCard,10); CS(creditCard,Theme.Accent,1.2)
+        local creditL=Instance.new("TextLabel"); creditL.BackgroundTransparency=1; creditL.Size=UDim2.new(1,0,1,0); creditL.Text="🏷️  UI สร้างโดย wino444"; creditL.TextColor3=Theme.Accent; creditL.Font=Enum.Font.GothamBold; creditL.TextSize=12; creditL.Parent=creditCard
+
         wBtn.MouseButton1Click:Connect(function() SetActiveTab("_Welcome") end)
     end
 
@@ -583,10 +682,17 @@ function EclipseLib:CreateWindow(opts)
         for _,th in ipairs(Themes) do
             local tb=Instance.new("TextButton"); tb.BackgroundColor3=th.bg; tb.Size=UDim2.new(1,0,1,0); tb.Text=th.name; tb.TextColor3=Color3.fromRGB(220,220,235); tb.Font=Enum.Font.GothamBold; tb.TextSize=10; tb.TextWrapped=true; tb.Parent=thCard; CC(tb,7); CS(tb,th.accent,1.5)
             tb.MouseButton1Click:Connect(function()
-                Theme.Background=th.bg; Theme.Secondary=th.sec; Theme.Border=th.border; Theme.TabInactive=th.inactive
+                -- อัปเดต Theme table ก่อน
+                Theme.Background=th.bg; Theme.Secondary=th.sec; Theme.Border=th.border
+                Theme.TabInactive=th.inactive; Theme.Accent=th.accent; Theme.TabActive=th.accent
+                Theme.Toggle_ON=th.accent; Theme.Slider_Fill=th.accent; Theme.Notif_Border=th.accent
                 Theme.Dropdown_BG=th.sec; Theme.Input_BG=th.sec; Theme.Slider_BG=th.sec
-                Tween(Main,{BackgroundColor3=th.bg},0.3)
-                ApplyAccent(th.accent)
+                -- Apply ไปทุก element จริงๆ
+                ApplyThemeAll({
+                    bg=th.bg, sec=th.sec, accent=th.accent,
+                    border=th.border, inactive=th.inactive,
+                    text=Theme.Text, subtext=Theme.SubText,
+                })
                 EclipseLib:Notify({Title="🎨 เปลี่ยน Theme แล้ว",Content=th.name,Duration=2,Type="success"})
             end)
         end
@@ -634,7 +740,13 @@ function EclipseLib:CreateWindow(opts)
         local applyBtn=Instance.new("TextButton"); applyBtn.BackgroundColor3=Theme.Accent; applyBtn.Size=UDim2.new(1,-20,0,28); applyBtn.Position=UDim2.new(0,10,0,116); applyBtn.Text="🎨 ใช้สีนี้"; applyBtn.TextColor3=Color3.fromRGB(255,255,255); applyBtn.Font=Enum.Font.GothamBold; applyBtn.TextSize=12; applyBtn.Parent=rgbCard; CC(applyBtn,7)
         applyBtn.MouseButton1Click:Connect(function()
             local c=Color3.fromRGB(rVal,gVal,bVal)
-            ApplyAccent(c); applyBtn.BackgroundColor3=c
+            Theme.Accent=c; Theme.TabActive=c; Theme.Toggle_ON=c; Theme.Slider_Fill=c; Theme.Notif_Border=c
+            ApplyThemeAll({
+                bg=Theme.Background, sec=Theme.Secondary, accent=c,
+                border=Theme.Border, inactive=Theme.TabInactive,
+                text=Theme.Text, subtext=Theme.SubText,
+            })
+            applyBtn.BackgroundColor3=c
             EclipseLib:Notify({Title="🎨 ใช้สีแล้ว!",Content="R:"..rVal.." G:"..gVal.." B:"..bVal,Duration=2,Type="success"})
         end)
 
@@ -832,12 +944,15 @@ function EclipseLib:CreateWindow(opts)
         tabBtn.MouseButton1Click:Connect(function() SetActiveTab(tabName) end)
 
         local TabAPI={}
-        local function BaseCard(h) local c=Instance.new("Frame"); c.BackgroundColor3=Theme.Secondary; c.Size=UDim2.new(1,0,0,h); c.Parent=tabFrame; CC(c,8); CS(c,Theme.Border); return c end
+        local function BaseCard(h)
+            local c=Instance.new("Frame"); c.BackgroundColor3=Theme.Secondary; c.Size=UDim2.new(1,0,0,h); c.Parent=tabFrame; CC(c,8); CS(c,Theme.Border)
+            RegSec(c); return c
+        end
 
         -- 🏷️ Label
         function TabAPI:AddLabel(o)
             o=o or {}; local l=Instance.new("TextLabel"); l.BackgroundTransparency=1; l.Size=UDim2.new(1,0,0,24); l.Text=o.Text or ""; l.TextColor3=Theme.SubText; l.Font=Enum.Font.Gotham; l.TextSize=12; l.TextXAlignment=Enum.TextXAlignment.Left; l.TextWrapped=true; l.Parent=tabFrame
-            local A={}; function A:SetText(t) l.Text=t end; return A
+            RegSub(l); local A={}; function A:SetText(t) l.Text=t end; return A
         end
 
         -- 📂 Section / Separator
@@ -845,8 +960,11 @@ function EclipseLib:CreateWindow(opts)
             o=o or {}
             local sf=Instance.new("Frame"); sf.BackgroundTransparency=1; sf.Size=UDim2.new(1,0,0,28); sf.Parent=tabFrame
             local line=Instance.new("Frame"); line.BackgroundColor3=Theme.Border; line.Size=UDim2.new(1,0,0,1); line.Position=UDim2.new(0,0,0.5,0); line.BorderSizePixel=0; line.Parent=sf
+            RegBorder({Color=Theme.Border, _frame=line, _isPseudo=true})
             local bg2=Instance.new("Frame"); bg2.BackgroundColor3=Theme.Background; bg2.AutomaticSize=Enum.AutomaticSize.X; bg2.Size=UDim2.new(0,0,1,0); bg2.Parent=sf
+            RegBG(bg2)
             local sl2=Instance.new("TextLabel"); sl2.BackgroundTransparency=1; sl2.AutomaticSize=Enum.AutomaticSize.X; sl2.Size=UDim2.new(0,0,1,0); sl2.Text="  "..(o.Name or "Section").."  "; sl2.TextColor3=Theme.Accent; sl2.Font=Enum.Font.GothamBold; sl2.TextSize=11; sl2.Parent=bg2
+            RegAccent(sl2)
         end
 
         -- 📊 Progress Bar (Realtime + สีเปลี่ยนตาม %)
