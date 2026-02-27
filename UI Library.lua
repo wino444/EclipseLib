@@ -1,5 +1,5 @@
 -- 🌒 EclipseLib
--- Version: 5.2.1
+-- Version: 5.3.0
 -- Theme: Dark but Radiant
 
 local EclipseLib = {}
@@ -340,9 +340,42 @@ end
 -- ═══════════════════════════════════════
 local function ShowKeySystem(opts, onSuccess)
     local keyList=opts.Key or {}; local keyTitle=opts.KeyTitle or "🔑 ใส่ Key"; local keyDesc=opts.KeyDescription or "กรอก Key เพื่อใช้งาน"; local keyLink=opts.KeyLink or ""
+    local saveFolder=opts.SaveFolder or "EclipseLib"; local keyFile=saveFolder.."/eclipse_key.dat"
+
+    -- ✅ ตรวจสอบ Key ที่บันทึกไว้ก่อน
+    local function CheckSavedKey()
+        local ok, saved = pcall(function()
+            if not isfolder(saveFolder) then return nil end
+            if not isfile(keyFile) then return nil end
+            return readfile(keyFile)
+        end)
+        if not ok or not saved or saved=="" then return false end
+        -- ตรวจว่า key ที่เซฟไว้ยังอยู่ใน keyList ไหม
+        for _,k in ipairs(keyList) do
+            if k==saved then return true end
+        end
+        -- key เก่าไม่ valid แล้ว ลบทิ้ง
+        pcall(function() delfile(keyFile) end)
+        return false
+    end
+
+    -- ✅ บันทึก Key
+    local function SaveKey(key)
+        pcall(function()
+            if not isfolder(saveFolder) then makefolder(saveFolder) end
+            writefile(keyFile, key)
+        end)
+    end
+
+    -- ถ้ามี Key เซฟอยู่แล้วและยัง valid → ข้ามไปเลย! 🚀
+    if CheckSavedKey() then
+        onSuccess()
+        return
+    end
+
     local sg=MakeScreenGui("__EclipseKey",10001)
     local bgO=Instance.new("Frame"); bgO.BackgroundColor3=Color3.fromRGB(0,0,0); bgO.BackgroundTransparency=1; bgO.Size=UDim2.new(1,0,1,0); bgO.Parent=sg
-    local card=Instance.new("Frame"); card.BackgroundColor3=Theme.Background; card.Size=UDim2.new(0,320,0,270); card.Position=UDim2.new(0.5,-160,0.5,-135); card.BackgroundTransparency=1; card.Parent=sg; CC(card,14); CS(card,Theme.Accent,1.5)
+    local card=Instance.new("Frame"); card.BackgroundColor3=Theme.Background; card.Size=UDim2.new(0,320,0,300); card.Position=UDim2.new(0.5,-160,0.5,-150); card.BackgroundTransparency=1; card.Parent=sg; CC(card,14); CS(card,Theme.Accent,1.5)
     local gb=Instance.new("Frame"); gb.BackgroundColor3=Theme.Accent; gb.Size=UDim2.new(1,0,0,3); gb.BorderSizePixel=0; gb.Parent=card
     local iL=Instance.new("TextLabel"); iL.BackgroundTransparency=1; iL.Position=UDim2.new(0,0,0,16); iL.Size=UDim2.new(1,0,0,36); iL.Text="🔑"; iL.TextSize=28; iL.Font=Enum.Font.GothamBold; iL.TextTransparency=1; iL.Parent=card
     local tL=Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,0,0,54); tL.Size=UDim2.new(1,0,0,24); tL.Text=keyTitle; tL.TextColor3=Theme.Text; tL.TextTransparency=1; tL.Font=Enum.Font.GothamBold; tL.TextSize=16; tL.Parent=card
@@ -350,23 +383,46 @@ local function ShowKeySystem(opts, onSuccess)
     local iBG=Instance.new("Frame"); iBG.BackgroundColor3=Theme.Input_BG; iBG.BackgroundTransparency=1; iBG.Size=UDim2.new(1,-32,0,36); iBG.Position=UDim2.new(0,16,0,118); iBG.Parent=card; CC(iBG,8); CS(iBG,Theme.Border)
     local iBox=Instance.new("TextBox"); iBox.BackgroundTransparency=1; iBox.Size=UDim2.new(1,-12,1,0); iBox.Position=UDim2.new(0,8,0,0); iBox.PlaceholderText="🔐 กรอก Key ที่นี่..."; iBox.PlaceholderColor3=Theme.SubText; iBox.TextColor3=Theme.Text; iBox.TextTransparency=1; iBox.Font=Enum.Font.Gotham; iBox.TextSize=13; iBox.ClearTextOnFocus=false; iBox.Text=""; iBox.Parent=iBG
     local stL=Instance.new("TextLabel"); stL.BackgroundTransparency=1; stL.Position=UDim2.new(0,16,0,160); stL.Size=UDim2.new(1,-32,0,16); stL.Text=""; stL.TextColor3=Color3.fromRGB(200,60,60); stL.Font=Enum.Font.Gotham; stL.TextSize=11; stL.Parent=card
-    local glB=Instance.new("TextButton"); glB.BackgroundColor3=Theme.Secondary; glB.BackgroundTransparency=1; glB.Size=UDim2.new(0,120,0,34); glB.Position=UDim2.new(0,16,0,184); glB.Text="🔗 Get Key"; glB.TextColor3=Theme.Accent; glB.TextTransparency=1; glB.Font=Enum.Font.GothamBold; glB.TextSize=12; glB.Parent=card; CC(glB,8); CS(glB,Theme.Accent,1)
-    local suB=Instance.new("TextButton"); suB.BackgroundColor3=Theme.Accent; suB.BackgroundTransparency=1; suB.Size=UDim2.new(0,130,0,34); suB.Position=UDim2.new(1,-146,0,184); suB.Text="✅ ยืนยัน Key"; suB.TextColor3=Color3.fromRGB(255,255,255); suB.TextTransparency=1; suB.Font=Enum.Font.GothamBold; suB.TextSize=12; suB.Parent=card; CC(suB,8)
+
+    -- 💾 Toggle จำ Key ไว้
+    local rememberKey=true
+    local remRow=Instance.new("Frame"); remRow.BackgroundTransparency=1; remRow.Size=UDim2.new(1,-32,0,24); remRow.Position=UDim2.new(0,16,0,182); remRow.Parent=card
+    local remLbl=Instance.new("TextLabel"); remLbl.BackgroundTransparency=1; remLbl.Size=UDim2.new(1,-46,1,0); remLbl.Text="💾 จำ Key ไว้ (ไม่ต้องใส่ทุกครั้ง)"; remLbl.TextColor3=Theme.SubText; remLbl.Font=Enum.Font.Gotham; remLbl.TextSize=10; remLbl.TextXAlignment=Enum.TextXAlignment.Left; remLbl.Parent=remRow
+    local remBG=Instance.new("Frame"); remBG.BackgroundColor3=Theme.Toggle_ON; remBG.Size=UDim2.new(0,36,0,20); remBG.Position=UDim2.new(1,-38,0.5,-10); remBG.Parent=remRow; CC(remBG,10)
+    local remKnob=Instance.new("Frame"); remKnob.BackgroundColor3=Color3.fromRGB(255,255,255); remKnob.Size=UDim2.new(0,14,0,14); remKnob.Position=UDim2.new(1,-17,0.5,-7); remKnob.Parent=remBG; CC(remKnob,7)
+    local remBtn=Instance.new("TextButton"); remBtn.BackgroundTransparency=1; remBtn.Size=UDim2.new(1,0,1,0); remBtn.Text=""; remBtn.Parent=remRow
+    remBtn.MouseButton1Click:Connect(function()
+        rememberKey=not rememberKey
+        Tween(remBG,{BackgroundColor3=rememberKey and Theme.Toggle_ON or Theme.Toggle_OFF},0.2)
+        Tween(remKnob,{Position=rememberKey and UDim2.new(1,-17,0.5,-7) or UDim2.new(0,3,0.5,-7)},0.2)
+    end)
+
+    local glB=Instance.new("TextButton"); glB.BackgroundColor3=Theme.Secondary; glB.BackgroundTransparency=1; glB.Size=UDim2.new(0,120,0,34); glB.Position=UDim2.new(0,16,0,214); glB.Text="🔗 Get Key"; glB.TextColor3=Theme.Accent; glB.TextTransparency=1; glB.Font=Enum.Font.GothamBold; glB.TextSize=12; glB.Parent=card; CC(glB,8); CS(glB,Theme.Accent,1)
+    local suB=Instance.new("TextButton"); suB.BackgroundColor3=Theme.Accent; suB.BackgroundTransparency=1; suB.Size=UDim2.new(0,130,0,34); suB.Position=UDim2.new(1,-146,0,214); suB.Text="✅ ยืนยัน Key"; suB.TextColor3=Color3.fromRGB(255,255,255); suB.TextTransparency=1; suB.Font=Enum.Font.GothamBold; suB.TextSize=12; suB.Parent=card; CC(suB,8)
+
     task.spawn(function()
         Tween(bgO,{BackgroundTransparency=0.5},0.3); Tween(card,{BackgroundTransparency=0},0.35,Enum.EasingStyle.Back,Enum.EasingDirection.Out); task.wait(0.15)
         for _,o in ipairs({iL,tL,dL,glB,suB}) do Tween(o,{TextTransparency=0},0.3); pcall(function() Tween(o,{BackgroundTransparency=0},0.3) end); task.wait(0.05) end
         Tween(iBG,{BackgroundTransparency=0},0.3); Tween(iBox,{TextTransparency=0},0.3)
     end)
+
     glB.MouseButton1Click:Connect(function()
         SetClipboard(keyLink); local old=glB.Text; glB.Text="✅ คัดลอกแล้ว!"; Tween(glB,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.2); task.wait(2); glB.Text=old; Tween(glB,{BackgroundColor3=Theme.Secondary},0.2)
     end)
+
     suB.MouseButton1Click:Connect(function()
         local entered=iBox.Text; local valid=false
         for _,k in ipairs(keyList) do if k==entered then valid=true; break end end
         if valid then
+            -- บันทึก Key ถ้าเปิด toggle จำ Key
+            if rememberKey then SaveKey(entered) end
+            stL.TextColor3=Color3.fromRGB(60,200,100)
+            stL.Text= rememberKey and "✅ Key ถูกต้อง! จำไว้แล้ว 💾" or "✅ Key ถูกต้อง!"
+            task.wait(0.5)
             for i=1,3 do Tween(bgO,{BackgroundTransparency=i%2==0 and 0.5 or 0.1},0.06); task.wait(0.06) end
             Tween(card,{BackgroundTransparency=1,Size=UDim2.new(0,320,0,0)},0.25); Tween(bgO,{BackgroundTransparency=1},0.3); task.wait(0.35); sg:Destroy(); onSuccess()
         else
+            stL.TextColor3=Color3.fromRGB(200,60,60)
             stL.Text="❌ Key ไม่ถูกต้อง ลองใหม่!"; Tween(iBG,{BackgroundColor3=Color3.fromRGB(60,20,20)},0.12)
             local op=iBG.Position
             for i=1,4 do Tween(iBG,{Position=UDim2.new(op.X.Scale,op.X.Offset+(i%2==0 and 6 or -6),op.Y.Scale,op.Y.Offset)},0.05); task.wait(0.05) end
@@ -385,7 +441,7 @@ function EclipseLib:CreateWindow(opts)
     local loadSub=opts.LoadingSubtitle or "กำลังโหลด..."
     local useKey=opts.KeySystem or false
     local cfgFolder=(opts.ConfigurationSaving and opts.ConfigurationSaving.FolderName) or "EclipseLib"
-    local keyOpts={Key=opts.Key or {},KeyTitle=opts.KeyTitle or "🔑 ใส่ Key",KeyDescription=opts.KeyDescription or "กรอก Key เพื่อใช้งาน",KeyLink=opts.KeyLink or ""}
+    local keyOpts={Key=opts.Key or {},KeyTitle=opts.KeyTitle or "🔑 ใส่ Key",KeyDescription=opts.KeyDescription or "กรอก Key เพื่อใช้งาน",KeyLink=opts.KeyLink or "",SaveFolder=cfgFolder}
     ConfigSystem:SetFolder(cfgFolder)
 
     local ScreenGui=MakeScreenGui("__EclipseLib",999)
@@ -525,22 +581,46 @@ function EclipseLib:CreateWindow(opts)
         local aFr=Instance.new("Frame"); aFr.BackgroundColor3=Theme.Accent; aFr.Size=UDim2.new(0,62,0,62); aFr.Position=UDim2.new(0,11,0.5,-31); aFr.Parent=aCard; CC(aFr,31); CS(aFr,Theme.Accent,2)
         RegAccent(aFr)
         local aImg=Instance.new("ImageLabel"); aImg.BackgroundTransparency=1; aImg.Size=UDim2.new(1,-4,1,-4); aImg.Position=UDim2.new(0,2,0,2); aImg.Image="https://www.roblox.com/headshot-thumbnail/image?userId="..tostring(LocalPlayer.UserId).."&width=150&height=150&format=png"; aImg.Parent=aFr; CC(aImg,29)
-        local dN=Instance.new("TextLabel"); dN.BackgroundTransparency=1; dN.Position=UDim2.new(0,86,0,14); dN.Size=UDim2.new(1,-96,0,22); dN.Text=LocalPlayer.DisplayName or "?"; dN.TextColor3=Theme.Text; dN.Font=Enum.Font.GothamBold; dN.TextSize=16; dN.TextXAlignment=Enum.TextXAlignment.Left; dN.Parent=aCard
+        local dN=Instance.new("TextLabel"); dN.BackgroundTransparency=1; dN.Position=UDim2.new(0,86,0,8); dN.Size=UDim2.new(1,-166,0,22); dN.Text=LocalPlayer.DisplayName or "?"; dN.TextColor3=Theme.Text; dN.Font=Enum.Font.GothamBold; dN.TextSize=16; dN.TextXAlignment=Enum.TextXAlignment.Left; dN.Parent=aCard
         RegText(dN)
-        local uN=Instance.new("TextLabel"); uN.BackgroundTransparency=1; uN.Position=UDim2.new(0,86,0,38); uN.Size=UDim2.new(1,-96,0,16); uN.Text="@"..(LocalPlayer.Name or "?"); uN.TextColor3=Theme.SubText; uN.Font=Enum.Font.Gotham; uN.TextSize=12; uN.TextXAlignment=Enum.TextXAlignment.Left; uN.Parent=aCard
+        local uN=Instance.new("TextLabel"); uN.BackgroundTransparency=1; uN.Position=UDim2.new(0,86,0,32); uN.Size=UDim2.new(1,-166,0,16); uN.Text="@"..(LocalPlayer.Name or "?"); uN.TextColor3=Theme.SubText; uN.Font=Enum.Font.Gotham; uN.TextSize=12; uN.TextXAlignment=Enum.TextXAlignment.Left; uN.Parent=aCard
         RegSub(uN)
-        local idB=Instance.new("Frame"); idB.BackgroundColor3=Theme.Accent; idB.Size=UDim2.new(0,100,0,18); idB.Position=UDim2.new(0,86,0,58); idB.Parent=aCard; CC(idB,6)
+        local idB=Instance.new("Frame"); idB.BackgroundColor3=Theme.Accent; idB.Size=UDim2.new(0,100,0,18); idB.Position=UDim2.new(0,86,0,54); idB.Parent=aCard; CC(idB,6)
         local idL=Instance.new("TextLabel"); idL.BackgroundTransparency=1; idL.Size=UDim2.new(1,0,1,0); idL.Text="🆔 "..tostring(LocalPlayer.UserId); idL.TextColor3=Color3.fromRGB(255,255,255); idL.Font=Enum.Font.GothamBold; idL.TextSize=10; idL.Parent=idB
 
-        local function MakeInfoCard(icon,label,valFn)
+        -- 📋 ปุ่ม Copy ชื่อ + UserID
+        local function MakeCopyBtn(parent, xPos, yPos, getCopyVal)
+            local btn=Instance.new("TextButton"); btn.BackgroundColor3=Theme.Secondary; btn.Size=UDim2.new(0,60,0,20); btn.Position=UDim2.new(1,xPos,0,yPos); btn.Text="📋 Copy"; btn.TextColor3=Theme.Accent; btn.Font=Enum.Font.GothamBold; btn.TextSize=9; btn.Parent=parent; CC(btn,5); CS(btn,Theme.Accent,1)
+            btn.MouseButton1Click:Connect(function()
+                SetClipboard(tostring(getCopyVal()))
+                local old=btn.Text; btn.Text="✅ แล้ว!"
+                Tween(btn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.1)
+                task.wait(1.2); btn.Text=old; Tween(btn,{BackgroundColor3=Theme.Secondary},0.15)
+            end)
+        end
+
+        MakeCopyBtn(aCard,-68,8,function() return LocalPlayer.DisplayName end)
+        MakeCopyBtn(aCard,-68,32,function() return LocalPlayer.Name end)
+
+        local function MakeInfoCard(icon,label,valFn,copyable)
             local c=Instance.new("Frame"); c.BackgroundColor3=Theme.Secondary; c.Size=UDim2.new(1,0,0,54); c.Parent=wFrame; CC(c,10); CS(c,Theme.Border)
             RegSec(c)
             local iL=Instance.new("TextLabel"); iL.BackgroundTransparency=1; iL.Position=UDim2.new(0,8,0,0); iL.Size=UDim2.new(0,30,1,0); iL.Text=icon; iL.TextSize=20; iL.Font=Enum.Font.GothamBold; iL.Parent=c
-            local kL=Instance.new("TextLabel"); kL.BackgroundTransparency=1; kL.Position=UDim2.new(0,44,0,7); kL.Size=UDim2.new(1,-50,0,16); kL.Text=label; kL.TextColor3=Theme.SubText; kL.TextSize=10; kL.Font=Enum.Font.Gotham; kL.TextXAlignment=Enum.TextXAlignment.Left; kL.Parent=c
+            local kL=Instance.new("TextLabel"); kL.BackgroundTransparency=1; kL.Position=UDim2.new(0,44,0,7); kL.Size=UDim2.new(1,-120,0,16); kL.Text=label; kL.TextColor3=Theme.SubText; kL.TextSize=10; kL.Font=Enum.Font.Gotham; kL.TextXAlignment=Enum.TextXAlignment.Left; kL.Parent=c
             RegSub(kL)
-            local vL=Instance.new("TextLabel"); vL.BackgroundTransparency=1; vL.Position=UDim2.new(0,44,0,24); vL.Size=UDim2.new(1,-50,0,22); vL.Text=tostring(valFn()); vL.TextColor3=Theme.Text; vL.TextSize=13; vL.Font=Enum.Font.GothamBold; vL.TextXAlignment=Enum.TextXAlignment.Left; vL.Parent=c
+            local vL=Instance.new("TextLabel"); vL.BackgroundTransparency=1; vL.Position=UDim2.new(0,44,0,24); vL.Size=UDim2.new(1,-120,0,22); vL.Text=tostring(valFn()); vL.TextColor3=Theme.Text; vL.TextSize=13; vL.Font=Enum.Font.GothamBold; vL.TextXAlignment=Enum.TextXAlignment.Left; vL.Parent=c
             RegText(vL)
             RunService.Heartbeat:Connect(function() local v=tostring(valFn()); if vL.Text~=v then vL.Text=v end end)
+            -- ปุ่ม copy (เฉพาะ card ที่ copyable=true)
+            if copyable then
+                local cpBtn=Instance.new("TextButton"); cpBtn.BackgroundColor3=Theme.Secondary; cpBtn.Size=UDim2.new(0,60,0,22); cpBtn.Position=UDim2.new(1,-70,0.5,-11); cpBtn.Text="📋 Copy"; cpBtn.TextColor3=Theme.Accent; cpBtn.Font=Enum.Font.GothamBold; cpBtn.TextSize=9; cpBtn.Parent=c; CC(cpBtn,5); CS(cpBtn,Theme.Accent,1)
+                cpBtn.MouseButton1Click:Connect(function()
+                    SetClipboard(tostring(valFn()))
+                    local old=cpBtn.Text; cpBtn.Text="✅ แล้ว!"
+                    Tween(cpBtn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.1)
+                    task.wait(1.2); cpBtn.Text=old; Tween(cpBtn,{BackgroundColor3=Theme.Secondary},0.15)
+                end)
+            end
         end
 
         -- 🗺️ ชื่อแมพ (fallback หลายชั้น)
@@ -550,10 +630,10 @@ function EclipseLib:CreateWindow(opts)
             if not name or name=="" then pcall(function() name=game.Name end) end
             if not name or name=="" then name="ไม่พบชื่อแมพ" end
             return name
-        end)
-        MakeInfoCard("📍","Place ID",function() return tostring(game.PlaceId) end)
+        end, true)
+        MakeInfoCard("📍","Place ID",function() return tostring(game.PlaceId) end, true)
 
-        -- ⏳ อายุบัญชี (แปลงจากวันเป็น ปี เดือน วัน)
+        -- ⏳ อายุบัญชี
         MakeInfoCard("⏳","อายุบัญชี",function()
             local days=LocalPlayer.AccountAge or 0
             local years=math.floor(days/365); local remain=days-(years*365)
@@ -562,17 +642,16 @@ function EclipseLib:CreateWindow(opts)
             if years>0 then result=result..years.." ปี " end
             if months>0 then result=result..months.." เดือน " end
             result=result..d.." วัน"
-            -- ถ้าแค่วันเดียวก็แสดงแค่วัน ไม่มี ปี เดือน ก็โอเค
             return result
-        end)
+        end, false)
 
         -- 🖥️ Server ID
         MakeInfoCard("🖥️","Server ID",function()
             local jid=game.JobId
             return (jid and jid~="") and jid or "ไม่พบ"
-        end)
+        end, true)
 
-        -- ⏱️ เวลาที่เล่น (นับตั้งแต่รัน — แสดง วัน ชั่วโมง นาที วินาที)
+        -- ⏱️ เวลาที่เล่น
         local sessionStart=tick()
         MakeInfoCard("⏱️","เวลาที่เล่น",function()
             local elapsed=math.floor(tick()-sessionStart)
@@ -586,7 +665,7 @@ function EclipseLib:CreateWindow(opts)
             if m>0 then result=result..m.." นาที " end
             result=result..s.." วินาที"
             return result
-        end)
+        end, false)
 
         -- 🏷️ เครดิต
         local creditCard=Instance.new("Frame"); creditCard.BackgroundColor3=Theme.Secondary; creditCard.Size=UDim2.new(1,0,0,36); creditCard.Parent=wFrame; CC(creditCard,10); CS(creditCard,Theme.Accent,1.2)
@@ -1041,16 +1120,30 @@ function EclipseLib:CreateWindow(opts)
                 RunService.Heartbeat:Connect(function() local v=tostring(o.RealtimeValue()); if rL.Text~=v then rL.Text=v end end)
             end
             local ab=Instance.new("TextButton"); ab.BackgroundColor3=Theme.Accent; ab.Size=UDim2.new(0,30,0,30); ab.Position=UDim2.new(1,-40,0.5,-15); ab.Text="▼"; ab.TextColor3=Color3.fromRGB(255,255,255); ab.Font=Enum.Font.GothamBold; ab.TextSize=12; ab.Parent=card; CC(ab,6)
-            local dl=Instance.new("Frame"); dl.BackgroundColor3=Theme.Dropdown_BG; dl.Size=UDim2.new(1,0,0,#items*30+8); dl.Position=UDim2.new(0,0,1,4); dl.Visible=false; dl.ZIndex=10; dl.Parent=card; CC(dl,8); CS(dl,Theme.Border)
+
+            -- ✅ เปลี่ยนเป็น ScrollingFrame รองรับ option เยอะ + เลื่อนได้
+            local maxH=150 -- ความสูงสูงสุดของ dropdown list
+            local dl=Instance.new("ScrollingFrame")
+            dl.BackgroundColor3=Theme.Dropdown_BG; dl.Position=UDim2.new(0,0,1,4)
+            dl.Visible=false; dl.ZIndex=10; dl.Parent=card
+            dl.ScrollBarThickness=3; dl.ScrollBarImageColor3=Theme.Accent
+            dl.ScrollingDirection=Enum.ScrollingDirection.Y
+            dl.CanvasSize=UDim2.new(0,0,0,0); dl.ClipsDescendants=true
+            CC(dl,8); CS(dl,Theme.Border)
+
             local dly=Instance.new("UIListLayout"); dly.Padding=UDim.new(0,2); dly.SortOrder=Enum.SortOrder.LayoutOrder; dly.Parent=dl
             local dp=Instance.new("UIPadding"); dp.PaddingTop=UDim.new(0,4); dp.PaddingLeft=UDim.new(0,4); dp.PaddingRight=UDim.new(0,4); dp.Parent=dl
+
             local function Pop()
                 for _,c in ipairs(dl:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
                 for _,item in ipairs(items) do
                     local ib=Instance.new("TextButton"); ib.BackgroundColor3=Theme.Secondary; ib.Size=UDim2.new(1,0,0,26); ib.Text="  "..item; ib.TextColor3=Theme.Text; ib.Font=Enum.Font.Gotham; ib.TextSize=12; ib.TextXAlignment=Enum.TextXAlignment.Left; ib.ZIndex=11; ib.Parent=dl; CC(ib,6)
                     ib.MouseButton1Click:Connect(function() sel=item; sL.Text=item; exp=false; dl.Visible=false; ab.Text="▼"; if o.Callback then o.Callback(item) end end)
                 end
-                dl.Size=UDim2.new(1,0,0,#items*30+8)
+                -- คำนวณความสูง: ถ้า option น้อยใช้ขนาดพอดี ถ้าเยอะจำกัดที่ maxH
+                local totalH=math.min(#items*30+8, maxH)
+                dl.Size=UDim2.new(1,0,0,totalH)
+                dl.CanvasSize=UDim2.new(0,0,0,#items*30+8)
             end
             Pop(); ab.MouseButton1Click:Connect(function() exp=not exp; dl.Visible=exp; ab.Text=exp and "▲" or "▼" end)
             if o.ConfigKey then ConfigSystem:Register(o.ConfigKey,function() return sel end,function(v) sel=v; sL.Text=v; if o.Callback then o.Callback(v) end end) end
