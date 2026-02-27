@@ -5,9 +5,7 @@
 ## 📦 วิธีโหลด Library
 
 ```lua
-local EclipseLib = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/wino444/EclipseLib/45ca6e8001608487b618ee2c9cdac7867b562dd8/Library%20EclipseLib.lua"
-))()
+local EclipseLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/wino444/EclipseLib/main/UI%20Library.lua')()
 ```
 
 ---
