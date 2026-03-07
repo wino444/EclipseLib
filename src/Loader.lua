@@ -3,7 +3,7 @@
 --
 -- ⚠️ แก้ไข BASE_URL ให้ตรงกับ GitHub ของแก ก่อนใช้งาน
 
-local BASE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/EclipseLib/main/src/"
+local BASE_URL = "https://raw.githubusercontent.com/wino444/EclipseLib/main/src/"
 
 -- ═══════════════════════════════════════════
 -- 🔧 Module Loader (โหลดแต่ละ module แยก)
