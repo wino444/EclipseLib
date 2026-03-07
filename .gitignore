@@ -1,0 +1,24 @@
+# ไฟล์ทดสอบส่วนตัว
+test/
+*.test.lua
+*.dev.lua
+*.local.lua
+
+# Key และ secrets (ห้าม push เด็ดขาด!)
+**/key*.txt
+**/keys.lua
+**/secret*.lua
+**/webhook*.lua
+
+# Config ที่เซฟในเครื่อง
+*.eclipse
+
+# ไฟล์ OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
