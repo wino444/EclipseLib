@@ -2,7 +2,7 @@
 -- โหลด EclipseLib ก่อน แล้วรันสคริปต์นี้
 
 local EclipseLib = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/YOUR_USERNAME/EclipseLib/main/src/Loader.lua"
+    "https://raw.githubusercontent.com/wino444/EclipseLib/main/src/Loader.lua"
 ))()
 
 -- ═══════════════════════════
