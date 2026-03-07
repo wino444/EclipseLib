@@ -1,27 +1,23 @@
 -- 🌒 EclipseLib
 -- Version: 5.4.0 (Refactored)
 -- Theme: Dark but Radiant
--- GitHub: https://github.com/YOUR_USERNAME/EclipseLib
+-- GitHub: https://github.com/wino444/EclipseLib
 
 -- ═══════════════════════════════════════════════════════════
--- 📦 Load Modules
+-- 📦 Load Modules จาก GitHub raw
 -- ═══════════════════════════════════════════════════════════
-local function requireModule(name)
-    -- รองรับทั้งแบบ loadstring จาก GitHub และ require ในเครื่อง
-    local ok, result = pcall(function()
-        return require(script.Parent.modules[name])
-    end)
-    if ok then return result end
-    -- fallback: โหลดจาก path ตรง (กรณี executor)
-    return loadstring(readfile("EclipseLib/src/modules/"..name..".lua"))()
+local BASE_URL = "https://raw.githubusercontent.com/wino444/EclipseLib/main/src/modules/"
+
+local function LoadMod(name)
+    return loadstring(game:HttpGet(BASE_URL .. name .. ".lua"))()
 end
 
-local Utility      = requireModule("Utility")
-local ThemeSystem  = requireModule("ThemeSystem")
-local ConfigSystem = requireModule("ConfigSystem")
-local Notification = requireModule("Notification")
-local Intro        = requireModule("Intro")
-local KeySystem    = requireModule("KeySystem")
+local Utility      = LoadMod("Utility")
+local ThemeSystem  = LoadMod("ThemeSystem")
+local ConfigSystem = LoadMod("ConfigSystem")
+local Notification = LoadMod("Notification")
+local Intro        = LoadMod("Intro")
+local KeySystem    = LoadMod("KeySystem")
 
 -- ═══════════════════════════════════════════════════════════
 -- 🎨 Theme (live table — แก้ไขได้ตลอด)
@@ -33,7 +29,7 @@ for k, v in pairs(ThemeSystem.Default) do Theme[k] = v end
 -- 🎬 Intro Config
 -- ═══════════════════════════════════════════════════════════
 local IntroConfig = {
-    Mode     = "particle",  -- "fade" | "zoom" | "glitch" | "particle"
+    Mode     = "particle",
     Duration = 4,
     Icon     = "🌒",
 }
@@ -48,7 +44,7 @@ local RunService       = game:GetService("RunService")
 local LocalPlayer      = Players.LocalPlayer
 
 -- ═══════════════════════════════════════════════════════════
--- 🧰 Shorthand Helpers (จาก Utility)
+-- 🧰 Shorthand Helpers
 -- ═══════════════════════════════════════════════════════════
 local Tween     = Utility.Tween
 local TweenWait = Utility.TweenWait
@@ -61,9 +57,6 @@ local CS        = function(p, c, t) return Utility.CS(p, c, t, Theme) end
 local EclipseLib = {}
 EclipseLib.__index = EclipseLib
 
--- ─────────────────────────────
--- 🔔 Notify (ผ่าน queue)
--- ─────────────────────────────
 function EclipseLib:Notify(opts)
     Notification.Notify(opts, Theme, Utility)
 end
@@ -87,12 +80,9 @@ function EclipseLib:CreateWindow(opts)
     }
     ConfigSystem:SetFolder(cfgFolder)
 
-    -- ── Connection Table (cleanup ตอน Destroy) ──
     local _connections = {}
 
-    -- ─────────────────────────────
     -- 🖥️ ScreenGui
-    -- ─────────────────────────────
     local ScreenGui = Utility.MakeScreenGui("__EclipseLib", 999)
 
     local Main = Instance.new("Frame")
@@ -173,9 +163,7 @@ function EclipseLib:CreateWindow(opts)
         MinBtn.Text = isOpen and "—" or "▲"
     end))
 
-    -- ─────────────────────────────
     -- 📱 Floating Button
-    -- ─────────────────────────────
     local floatSG = Utility.MakeScreenGui("__EclipseFloat", 998)
     local floatBtn = Instance.new("TextButton")
     floatBtn.BackgroundColor3 = Theme.Accent; floatBtn.Size = UDim2.new(0, 46, 0, 46)
@@ -195,9 +183,7 @@ function EclipseLib:CreateWindow(opts)
         isOpen = true; MinBtn.Text = "—"
     end))
 
-    -- ─────────────────────────────
     -- 🎨 Theme Registry
-    -- ─────────────────────────────
     local TR = ThemeSystem.NewRegistry()
     table.insert(TR.backgrounds, Main)
     table.insert(TR.secondaries, TopBar); table.insert(TR.secondaries, tbFix); table.insert(TR.secondaries, TabBar)
@@ -206,24 +192,20 @@ function EclipseLib:CreateWindow(opts)
         if v:IsA("UIStroke") then table.insert(TR.borders, v) end
     end
 
+    local tabButtons = {}
+    local tabFrames  = {}
+    local activeTab  = nil
+
     local function ApplyThemeAll(th)
         ThemeSystem.ApplyAll(TR, th, tabButtons, activeTab, Theme, Tween)
     end
-    local function RegBG(f)  table.insert(TR.backgrounds, f) end
-    local function RegSec(f) table.insert(TR.secondaries, f) end
+    local function RegBG(f)     table.insert(TR.backgrounds, f) end
+    local function RegSec(f)    table.insert(TR.secondaries, f) end
     local function RegAccent(f) table.insert(TR.accents, f) end
     local function RegBorder(s) table.insert(TR.borders, s) end
     local function RegText(l)   table.insert(TR.texts, l) end
     local function RegSub(l)    table.insert(TR.subtexts, l) end
     local function RegSlider(f) table.insert(TR.sliderFills, f) end
-
-    -- ─────────────────────────────
-    -- 🗂️ Tab System
-    -- ─────────────────────────────
-    local WindowObj  = {}
-    local tabButtons = {}
-    local tabFrames  = {}
-    local activeTab  = nil
 
     local function SetActiveTab(name)
         for n, btn in pairs(tabButtons) do
@@ -258,9 +240,7 @@ function EclipseLib:CreateWindow(opts)
         RegSec(btn); return btn
     end
 
-    -- ═══════════════════════════
     -- 🏠 Welcome Tab
-    -- ═══════════════════════════
     do
         local wBtn = MakeTabBtn("🏠 ยินดีต้อนรับ", true)
         local wFrame = MakeSF("Frame_Welcome"); wFrame.Visible = true
@@ -289,24 +269,6 @@ function EclipseLib:CreateWindow(opts)
         uN.Font=Enum.Font.Gotham; uN.TextSize=12; uN.TextXAlignment=Enum.TextXAlignment.Left; uN.Parent=aCard
         RegSub(uN)
 
-        -- Copy buttons
-        local function MakeCopyBtn(parent, xPos, yPos, getCopyVal)
-            local btn = Instance.new("TextButton"); btn.BackgroundColor3 = Theme.Secondary
-            btn.Size = UDim2.new(0,60,0,20); btn.Position = UDim2.new(1,xPos,0,yPos)
-            btn.Text = "📋 Copy"; btn.TextColor3 = Theme.Accent
-            btn.Font = Enum.Font.GothamBold; btn.TextSize = 9; btn.Parent = parent
-            CC(btn,5); CS(btn, Theme.Accent, 1)
-            table.insert(_connections, btn.MouseButton1Click:Connect(function()
-                Utility.SetClipboard(tostring(getCopyVal()))
-                local old = btn.Text; btn.Text = "✅ แล้ว!"
-                Tween(btn, {BackgroundColor3 = Color3.fromRGB(30,80,40)}, 0.1)
-                task.wait(1.2); btn.Text = old; Tween(btn, {BackgroundColor3 = Theme.Secondary}, 0.15)
-            end))
-        end
-        MakeCopyBtn(aCard, -68, 8, function() return LocalPlayer.DisplayName end)
-        MakeCopyBtn(aCard, -68, 32, function() return LocalPlayer.Name end)
-
-        -- Info Cards — แก้ไข: Cache MarketplaceService call
         local cachedMapName = nil
         local function MakeInfoCard(icon, label, valFn, copyable)
             local c = Instance.new("Frame"); c.BackgroundColor3 = Theme.Secondary
@@ -322,7 +284,6 @@ function EclipseLib:CreateWindow(opts)
             vL.Size=UDim2.new(1,-120,0,22); vL.Text=tostring(valFn()); vL.TextColor3=Theme.Text
             vL.TextSize=13; vL.Font=Enum.Font.GothamBold; vL.TextXAlignment=Enum.TextXAlignment.Left; vL.Parent=c
             RegText(vL)
-            -- แก้ไข: อัปเดตเฉพาะ value เปลี่ยน (ทุก 0.5s แทน Heartbeat)
             task.spawn(function()
                 while c.Parent do
                     local v = tostring(valFn())
@@ -344,15 +305,13 @@ function EclipseLib:CreateWindow(opts)
             end
         end
 
-        -- แก้ไข: Cache map name ไว้ ไม่เรียกซ้ำทุก frame
         MakeInfoCard("🗺️", "ชื่อแมพ", function()
             if cachedMapName then return cachedMapName end
             local name = ""
             pcall(function() name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
             if not name or name == "" then pcall(function() name = game.Name end) end
             if not name or name == "" then name = "ไม่พบชื่อแมพ" end
-            cachedMapName = name
-            return name
+            cachedMapName = name; return name
         end, true)
         MakeInfoCard("📍", "Place ID", function() return tostring(game.PlaceId) end, true)
         MakeInfoCard("⏳", "อายุบัญชี", function()
@@ -368,7 +327,6 @@ function EclipseLib:CreateWindow(opts)
             local jid = game.JobId
             return (jid and jid ~= "") and jid or "ไม่พบ"
         end, true)
-
         local sessionStart = tick()
         MakeInfoCard("⏱️", "เวลาที่เล่น", function()
             local elapsed = math.floor(tick()-sessionStart)
@@ -391,9 +349,7 @@ function EclipseLib:CreateWindow(opts)
         table.insert(_connections, wBtn.MouseButton1Click:Connect(function() SetActiveTab("_Welcome") end))
     end
 
-    -- ═══════════════════════════
     -- ⚙️ Settings Tab
-    -- ═══════════════════════════
     do
         local sBtn = MakeTabBtn("⚙️ ตั้งค่า UI", false)
         local sFrame = MakeSF("Frame_Settings")
@@ -409,7 +365,6 @@ function EclipseLib:CreateWindow(opts)
         local DefaultTheme = {}
         for k, v in pairs(ThemeSystem.Default) do DefaultTheme[k] = v end
 
-        -- Preset Themes
         SecTitle("🎨 Preset Themes")
         local thCard = Instance.new("Frame"); thCard.BackgroundColor3=Theme.Secondary
         thCard.Size=UDim2.new(1,0,0,120); thCard.Parent=sFrame; CC(thCard,8); CS(thCard, Theme.Border)
@@ -427,33 +382,31 @@ function EclipseLib:CreateWindow(opts)
             end))
         end
 
-        -- Config Save/Load
         SecTitle("💾 บันทึก / โหลด Config")
         local saveCard = Instance.new("Frame"); saveCard.BackgroundColor3=Theme.Secondary
-        saveCard.Size=UDim2.new(1,0,0,182); saveCard.Parent=sFrame; CC(saveCard,10); CS(saveCard, Theme.Border)
+        saveCard.Size=UDim2.new(1,0,0,100); saveCard.Parent=sFrame; CC(saveCard,10); CS(saveCard, Theme.Border)
 
-        local snL = Instance.new("TextLabel"); snL.BackgroundTransparency=1; snL.Position=UDim2.new(0,10,0,8)
-        snL.Size=UDim2.new(1,-20,0,14); snL.Text="📝 ชื่อไฟล์ใหม่"; snL.TextColor3=Theme.SubText
-        snL.Font=Enum.Font.Gotham; snL.TextSize=11; snL.TextXAlignment=Enum.TextXAlignment.Left; snL.Parent=saveCard
         local nIBG = Instance.new("Frame"); nIBG.BackgroundColor3=Theme.Input_BG; nIBG.Size=UDim2.new(1,-20,0,28)
-        nIBG.Position=UDim2.new(0,10,0,24); nIBG.Parent=saveCard; CC(nIBG,6); CS(nIBG, Theme.Border)
+        nIBG.Position=UDim2.new(0,10,0,10); nIBG.Parent=saveCard; CC(nIBG,6); CS(nIBG, Theme.Border)
         local nBox = Instance.new("TextBox"); nBox.BackgroundTransparency=1; nBox.Size=UDim2.new(1,-10,1,0)
-        nBox.Position=UDim2.new(0,6,0,0); nBox.PlaceholderText="พิมพ์ชื่อไฟล์..."; nBox.PlaceholderColor3=Theme.SubText
+        nBox.Position=UDim2.new(0,6,0,0); nBox.PlaceholderText="ชื่อไฟล์..."; nBox.PlaceholderColor3=Theme.SubText
         nBox.TextColor3=Theme.Text; nBox.Font=Enum.Font.Gotham; nBox.TextSize=12
-        nBox.TextXAlignment=Enum.TextXAlignment.Left; nBox.ClearTextOnFocus=false; nBox.Text=""; nBox.Parent=nIBG
+        nBox.ClearTextOnFocus=false; nBox.Text=""; nBox.Parent=nIBG
 
-        local saveNewBtn = Instance.new("TextButton"); saveNewBtn.BackgroundColor3=Theme.Accent
-        saveNewBtn.Size=UDim2.new(1,-20,0,28); saveNewBtn.Position=UDim2.new(0,10,0,58)
-        saveNewBtn.Text="💾 Save ใหม่"; saveNewBtn.TextColor3=Color3.fromRGB(255,255,255)
-        saveNewBtn.Font=Enum.Font.GothamBold; saveNewBtn.TextSize=12; saveNewBtn.Parent=saveCard; CC(saveNewBtn,7)
+        local saveBtn = Instance.new("TextButton"); saveBtn.BackgroundColor3=Theme.Accent
+        saveBtn.Size=UDim2.new(0.48,0,0,28); saveBtn.Position=UDim2.new(0,10,0,46)
+        saveBtn.Text="💾 Save"; saveBtn.TextColor3=Color3.fromRGB(255,255,255)
+        saveBtn.Font=Enum.Font.GothamBold; saveBtn.TextSize=11; saveBtn.Parent=saveCard; CC(saveBtn,7)
 
-        local sep = Instance.new("Frame"); sep.BackgroundColor3=Theme.Border
-        sep.Size=UDim2.new(1,-20,0,1); sep.Position=UDim2.new(0,10,0,94); sep.BorderSizePixel=0; sep.Parent=saveCard
+        local loadBtn = Instance.new("TextButton"); loadBtn.BackgroundColor3=Color3.fromRGB(40,110,190)
+        loadBtn.Size=UDim2.new(0.48,0,0,28); loadBtn.Position=UDim2.new(0.52,0,0,46)
+        loadBtn.Text="📂 Load"; loadBtn.TextColor3=Color3.fromRGB(255,255,255)
+        loadBtn.Font=Enum.Font.GothamBold; loadBtn.TextSize=11; loadBtn.Parent=saveCard; CC(loadBtn,7)
 
-        local fileSelected = ""
-        local cfgSt = Instance.new("TextLabel"); cfgSt.BackgroundTransparency=1; cfgSt.Position=UDim2.new(0,10,0,154)
-        cfgSt.Size=UDim2.new(1,-20,0,18); cfgSt.Text=""; cfgSt.TextColor3=Color3.fromRGB(60,200,100)
-        cfgSt.Font=Enum.Font.Gotham; cfgSt.TextSize=11; cfgSt.TextXAlignment=Enum.TextXAlignment.Left; cfgSt.Parent=saveCard
+        local cfgSt = Instance.new("TextLabel"); cfgSt.BackgroundTransparency=1
+        cfgSt.Position=UDim2.new(0,10,0,78); cfgSt.Size=UDim2.new(1,-20,0,16)
+        cfgSt.Text=""; cfgSt.TextColor3=Color3.fromRGB(60,200,100)
+        cfgSt.Font=Enum.Font.Gotham; cfgSt.TextSize=11; cfgSt.Parent=saveCard
 
         local function ShowSt(msg, ok)
             cfgSt.Text = msg
@@ -461,18 +414,21 @@ function EclipseLib:CreateWindow(opts)
             task.delay(3, function() cfgSt.Text = "" end)
         end
 
-        table.insert(_connections, saveNewBtn.MouseButton1Click:Connect(function()
+        table.insert(_connections, saveBtn.MouseButton1Click:Connect(function()
             local name = nBox.Text
-            if name == "" then ShowSt("❌ พิมพ์ชื่อไฟล์ก่อนนะ!", false); return end
-            if ConfigSystem:Save(name) then
-                ShowSt("✅ Save '"..name.."' สำเร็จ!", true); nBox.Text = ""
+            if name == "" then ShowSt("❌ พิมพ์ชื่อไฟล์ก่อน!", false); return end
+            if ConfigSystem:Save(name) then ShowSt("✅ Save '"..name.."' สำเร็จ!", true); nBox.Text = ""
             else ShowSt("❌ Save ไม่สำเร็จ", false) end
+        end))
+        table.insert(_connections, loadBtn.MouseButton1Click:Connect(function()
+            local name = nBox.Text
+            if name == "" then ShowSt("❌ พิมพ์ชื่อไฟล์ก่อน!", false); return end
+            if ConfigSystem:Load(name) then ShowSt("✅ Load '"..name.."' สำเร็จ!", true)
+            else ShowSt("❌ ไม่พบไฟล์", false) end
         end))
     end
 
-    -- ═══════════════════════════
-    -- ➕ CreateTab (Public API)
-    -- ═══════════════════════════
+    -- ➕ CreateTab
     function WindowObj:CreateTab(nameOrOpts, _icon)
         local tabName, tabIcon
         if type(nameOrOpts) == "string" then tabName = nameOrOpts; tabIcon = _icon or ""
@@ -490,7 +446,6 @@ function EclipseLib:CreateWindow(opts)
             RegSec(c); return c
         end
 
-        -- 🏷️ Label
         function TabAPI:AddLabel(o)
             o = o or {}; local l = Instance.new("TextLabel"); l.BackgroundTransparency=1
             l.Size=UDim2.new(1,0,0,24); l.Text=o.Text or ""; l.TextColor3=Theme.SubText
@@ -499,7 +454,6 @@ function EclipseLib:CreateWindow(opts)
             local A = {}; function A:SetText(t) l.Text = t end; return A
         end
 
-        -- 📂 Section
         function TabAPI:AddSection(o)
             o = o or {}
             local sf = Instance.new("Frame"); sf.BackgroundTransparency=1; sf.Size=UDim2.new(1,0,0,28); sf.Parent=tabFrame
@@ -513,7 +467,6 @@ function EclipseLib:CreateWindow(opts)
             sl2.TextColor3=Theme.Accent; sl2.Font=Enum.Font.GothamBold; sl2.TextSize=11; sl2.Parent=bg2; RegAccent(sl2)
         end
 
-        -- 🔘 Button
         function TabAPI:AddButton(o)
             o = o or {}; local card = BaseCard(50)
             local nL = Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6)
@@ -526,7 +479,6 @@ function EclipseLib:CreateWindow(opts)
                 local rL = Instance.new("TextLabel"); rL.BackgroundTransparency=1; rL.Position=UDim2.new(0.58,0,0,6)
                 rL.Size=UDim2.new(0.24,0,0,18); rL.Text=tostring(o.RealtimeValue()); rL.TextColor3=Theme.Accent
                 rL.Font=Enum.Font.GothamBold; rL.TextSize=11; rL.TextXAlignment=Enum.TextXAlignment.Right; rL.Parent=card; RegAccent(rL)
-                -- แก้ไข: ใช้ task loop แทน Heartbeat
                 task.spawn(function()
                     while card.Parent do
                         local v = tostring(o.RealtimeValue())
@@ -544,7 +496,6 @@ function EclipseLib:CreateWindow(opts)
             end))
         end
 
-        -- 🔄 Toggle
         function TabAPI:AddToggle(o)
             o = o or {}; local state = o.Default or false; local card = BaseCard(50)
             local nL = Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6)
@@ -568,7 +519,6 @@ function EclipseLib:CreateWindow(opts)
             local A = {}; function A:SetState(s) Apply(s) end; function A:GetState() return state end; return A
         end
 
-        -- 🎚️ Slider
         function TabAPI:AddSlider(o)
             o = o or {}; local mn = o.Min or 0; local mx = o.Max or 100
             local val = math.clamp(o.Default or mn, mn, mx); local card = BaseCard(60)
@@ -589,16 +539,15 @@ function EclipseLib:CreateWindow(opts)
                 if o.Callback then o.Callback(val) end
             end
             table.insert(_connections, tr.InputBegan:Connect(function(i)
-                if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-                    drag = true; upd(i.Position) end end))
+                if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=true; upd(i.Position) end end))
             table.insert(_connections, UserInputService.InputChanged:Connect(function(i)
                 if drag and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then upd(i.Position) end end))
             table.insert(_connections, UserInputService.InputEnded:Connect(function(i)
-                if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag = false end end))
+                if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then drag=false end end))
             if o.ConfigKey then
                 ConfigSystem:Register(o.ConfigKey, function() return val end, function(v)
-                    val = math.clamp(v,mn,mx); local r = (val-mn)/(mx-mn)
-                    fi.Size = UDim2.new(r,0,1,0); vL.Text = tostring(val); if o.Callback then o.Callback(val) end
+                    val=math.clamp(v,mn,mx); local r=(val-mn)/(mx-mn)
+                    fi.Size=UDim2.new(r,0,1,0); vL.Text=tostring(val); if o.Callback then o.Callback(val) end
                 end)
             end
             local A = {}
@@ -607,7 +556,6 @@ function EclipseLib:CreateWindow(opts)
             return A
         end
 
-        -- 🔽 Dropdown
         function TabAPI:AddDropdown(o)
             o = o or {}; local items = o.Options or {}; local sel = o.Default or (items[1] or ""); local exp = false
             local wr = Instance.new("Frame"); wr.BackgroundTransparency=1; wr.Size=UDim2.new(1,0,0,46)
@@ -626,7 +574,8 @@ function EclipseLib:CreateWindow(opts)
             local maxH = 150
             local dl = Instance.new("ScrollingFrame"); dl.BackgroundColor3=Theme.Dropdown_BG
             dl.Position=UDim2.new(0,0,1,4); dl.Visible=false; dl.ZIndex=10; dl.Parent=card
-            dl.ScrollBarThickness=3; dl.ScrollBarImageColor3=Theme.Accent; dl.ScrollingDirection=Enum.ScrollingDirection.Y
+            dl.ScrollBarThickness=3; dl.ScrollBarImageColor3=Theme.Accent
+            dl.ScrollingDirection=Enum.ScrollingDirection.Y
             dl.CanvasSize=UDim2.new(0,0,0,0); dl.ClipsDescendants=true; CC(dl,8); CS(dl, Theme.Border)
             local dly = Instance.new("UIListLayout"); dly.Padding=UDim.new(0,2); dly.SortOrder=Enum.SortOrder.LayoutOrder; dly.Parent=dl
             local dp = Instance.new("UIPadding"); dp.PaddingTop=UDim.new(0,4); dp.PaddingLeft=UDim.new(0,4); dp.PaddingRight=UDim.new(0,4); dp.Parent=dl
@@ -645,7 +594,6 @@ function EclipseLib:CreateWindow(opts)
                 dl.Size = UDim2.new(1,0,0,totalH); dl.CanvasSize = UDim2.new(0,0,0,#items*30+8)
             end
             Pop()
-            -- แก้ไข: ปิด dropdown อื่นก่อนเปิด (close-all pattern)
             table.insert(_connections, ab.MouseButton1Click:Connect(function()
                 exp = not exp; if exp then Pop() end; dl.Visible = exp; ab.Text = exp and "▲" or "▼"
             end))
@@ -654,7 +602,6 @@ function EclipseLib:CreateWindow(opts)
             function A:SetOptions(n) items=n; Pop() end; return A
         end
 
-        -- 📝 Input
         function TabAPI:AddInput(o)
             o = o or {}; local card = BaseCard(60)
             local nL = Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6)
@@ -671,11 +618,11 @@ function EclipseLib:CreateWindow(opts)
             local A = {}; function A:GetValue() return box.Text end; function A:SetValue(v) box.Text=v end; return A
         end
 
-        -- 📄 Paragraph — แก้ไข: AutomaticSize
         function TabAPI:AddParagraph(o)
             o = o or {}
             local card = Instance.new("Frame"); card.BackgroundColor3=Theme.Secondary
-            card.AutomaticSize=Enum.AutomaticSize.Y; card.Size=UDim2.new(1,0,0,0); card.Parent=tabFrame; CC(card,8); CS(card, Theme.Border); RegSec(card)
+            card.AutomaticSize=Enum.AutomaticSize.Y; card.Size=UDim2.new(1,0,0,0); card.Parent=tabFrame
+            CC(card,8); CS(card, Theme.Border); RegSec(card)
             local tL = Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,10,0,8)
             tL.Size=UDim2.new(1,-20,0,18); tL.Text=o.Title or ""; tL.TextColor3=Theme.Text
             tL.Font=Enum.Font.GothamBold; tL.TextSize=13; tL.TextXAlignment=Enum.TextXAlignment.Left; tL.Parent=card; RegText(tL)
@@ -692,7 +639,6 @@ function EclipseLib:CreateWindow(opts)
             return A
         end
 
-        -- 📊 ProgressBar
         function TabAPI:AddProgressBar(o)
             o = o or {}; local maxVal = o.Max or 100; local valFn = o.Value or function() return 0 end
             local card = BaseCard(54)
@@ -706,7 +652,6 @@ function EclipseLib:CreateWindow(opts)
             barBG.Position=UDim2.new(0,10,0,30); barBG.Parent=card; CC(barBG,5)
             local barFill = Instance.new("Frame"); barFill.BackgroundColor3=Theme.Accent
             barFill.Size=UDim2.new(0,0,1,0); barFill.Parent=barBG; CC(barFill,5); RegSlider(barFill)
-            -- แก้ไข: task loop แทน Heartbeat
             task.spawn(function()
                 while card.Parent do
                     local cur = 0; pcall(function() cur = valFn() end); cur = math.clamp(cur, 0, maxVal)
@@ -721,11 +666,9 @@ function EclipseLib:CreateWindow(opts)
         return TabAPI
     end
 
-    -- ═══════════════════════════
     -- 🪟 Window API
-    -- ═══════════════════════════
+    local WindowObj = {}
     function WindowObj:Notify(o) EclipseLib:Notify(o) end
-
     function WindowObj:Show()
         Main.Visible = true; Main.Size = UDim2.new(0,500,0,0)
         Tween(Main, {Size=UDim2.new(0,500,0,350)}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
@@ -738,8 +681,6 @@ function EclipseLib:CreateWindow(opts)
     function WindowObj:Toggle()
         if Main.Visible then self:Hide() else self:Show() end
     end
-
-    -- แก้ไข: Destroy cleanup connections ทั้งหมด
     function WindowObj:Destroy()
         for _, c in ipairs(_connections) do pcall(function() c:Disconnect() end) end
         pcall(function() ScreenGui:Destroy() end)
@@ -750,9 +691,7 @@ function EclipseLib:CreateWindow(opts)
         end)
     end
 
-    -- ─────────────────────────────
-    -- 🚀 Open Main UI
-    -- ─────────────────────────────
+    -- 🚀 Open
     local function OpenMainUI()
         Main.Visible = true; Main.Size = UDim2.new(0,500,0,0)
         Tween(Main, {Size=UDim2.new(0,500,0,350)}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
