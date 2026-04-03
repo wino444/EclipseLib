@@ -1,5 +1,5 @@
 --  EclipseLib
--- Version: 5.3.2 (Notify Overhaul + Stability)
+-- Version: 5.3.1 (UI Enhanced)
 -- Theme: Dark but Radiant
 
 local EclipseLib = {}
@@ -80,35 +80,22 @@ local function SetClipboard(text)
     pcall(function()
         if setclipboard then setclipboard(text)
         elseif toclipboard then toclipboard(text)
-        elseif Clipboard and Clipboard.set then Clipboard.set(text)
-        else
-            EclipseLib:Notify({Title="⚠️ Clipboard", Content="ไม่รองรับการคัดลอก", Type="warn", Duration=2})
-        end
+        elseif Clipboard then Clipboard.set(text) end
     end)
 end
 
---  Random ScreenGui name
 local function MakeScreenGui(name, order)
-    local sgName = "Gui_" .. math.random(100000, 999999)
     local sg = Instance.new("ScreenGui")
-    sg.Name = sgName
-    sg.ResetOnSpawn = false
-    sg.IgnoreGuiInset = true
-    sg.DisplayOrder = order or 999
+    sg.Name = name; sg.ResetOnSpawn = false; sg.IgnoreGuiInset = true; sg.DisplayOrder = order or 999
     pcall(function() sg.Parent = CoreGui end)
     if not sg.Parent then sg.Parent = LocalPlayer:WaitForChild("PlayerGui") end
     return sg
 end
 
---  ConfigSystem with file support check
 local ConfigSystem = {}
 ConfigSystem._folder     = "EclipseLib"
 ConfigSystem._data       = {}
 ConfigSystem._registered = {}
-
-local function HasFileSupport()
-    return pcall(function() return isfolder and writefile end)
-end
 
 function ConfigSystem:SetFolder(f) self._folder = f end
 
@@ -118,16 +105,14 @@ end
 
 function ConfigSystem:GetSaveList()
     local list = {}
-    if HasFileSupport() then
-        pcall(function()
-            if isfolder(self._folder) then
-                for _, f in ipairs(listfiles(self._folder)) do
-                    local name = f:match("([^/\\]+)%.eclipse$")
-                    if name then table.insert(list, name) end
-                end
+    pcall(function()
+        if isfolder and isfolder(self._folder) then
+            for _, f in ipairs(listfiles(self._folder)) do
+                local name = f:match("([^/\\]+)%.eclipse$")
+                if name then table.insert(list, name) end
             end
-        end)
-    end
+        end
+    end)
     for k in pairs(self._data) do
         local found = false
         for _, v in ipairs(list) do if v == k then found = true; break end end
@@ -144,21 +129,19 @@ function ConfigSystem:Save(filename)
         pcall(function() snapshot[key] = fns.get() end)
     end
     self._data[filename] = snapshot
-    if HasFileSupport() then
-        pcall(function()
-            if not isfolder(self._folder) then makefolder(self._folder) end
-            local encoded = ""
-            for k, v in pairs(snapshot) do encoded = encoded .. tostring(k) .. "=" .. tostring(v) .. "\n" end
-            writefile(self._folder .. "/" .. filename .. ".eclipse", encoded)
-        end)
-    end
+    pcall(function()
+        if not isfolder(self._folder) then makefolder(self._folder) end
+        local encoded = ""
+        for k, v in pairs(snapshot) do encoded = encoded .. tostring(k) .. "=" .. tostring(v) .. "\n" end
+        writefile(self._folder .. "/" .. filename .. ".eclipse", encoded)
+    end)
     return true
 end
 
 function ConfigSystem:Load(filename)
     if not filename or filename == "" or filename == "()" then return false end
     local snapshot = self._data[filename]
-    if not snapshot and HasFileSupport() then
+    if not snapshot then
         snapshot = {}
         pcall(function()
             local path = self._folder .. "/" .. filename .. ".eclipse"
@@ -176,12 +159,11 @@ function ConfigSystem:Load(filename)
         end)
     end
     for key, fns in pairs(self._registered) do
-        if snapshot and snapshot[key] ~= nil then pcall(function() fns.set(snapshot[key]) end) end
+        if snapshot[key] ~= nil then pcall(function() fns.set(snapshot[key]) end) end
     end
     return true
 end
 
---  Intro animations (unchanged)
 local function RunIntro_Fade(sg, title, subtitle, onDone)
     local bg = Instance.new("Frame"); bg.BackgroundColor3 = Color3.fromRGB(8,8,12); bg.Size = UDim2.new(1,0,1,0); bg.BackgroundTransparency = 1; bg.Parent = sg
     local glow = Instance.new("Frame"); glow.BackgroundColor3 = Theme.Accent; glow.BackgroundTransparency = 1; glow.Size = UDim2.new(0,180,0,180); glow.Position = UDim2.new(0.5,-90,0.5,-90); glow.Parent = bg; CC(glow,90)
@@ -298,124 +280,34 @@ local function PlayIntro(title, subtitle, onDone)
     else RunIntro_Fade(sg,title,subtitle,onDone) end
 end
 
---  NEW NOTIFY SYSTEM (Queue + Custom UI)
-local NotifyQueue = {}
-local isShowing = false
-local NotifyPosition = UDim2.new(1, -10, 1, -90)  -- default bottom-right
-
-local function createNotifyGui()
-    local existing = LocalPlayer.PlayerGui:FindFirstChild("EclipseNotifyGui")
-    if existing then existing:Destroy() end
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "EclipseNotifyGui"
-    gui.ResetOnSpawn = false
-    gui.DisplayOrder = 999
-    gui.Parent = LocalPlayer.PlayerGui
-    return gui
-end
-
-local function showNext()
-    if isShowing or #NotifyQueue == 0 then return end
-    isShowing = true
-    local data = table.remove(NotifyQueue, 1)
-    local gui = LocalPlayer.PlayerGui:FindFirstChild("EclipseNotifyGui") or createNotifyGui()
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 280, 0, 70)
-    frame.Position = NotifyPosition
-    frame.AnchorPoint = Vector2.new(1, 1)
-    frame.BackgroundColor3 = Theme.Notif_BG
-    frame.BorderSizePixel = 0
-    frame.Parent = gui
-    CC(frame, 12)
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Theme.Accent
-    stroke.Thickness = 2
-    stroke.Parent = frame
-
-    local icon = Instance.new("TextLabel")
-    icon.Size = UDim2.new(0, 40, 1, 0)
-    icon.Position = UDim2.new(0, 5, 0, 0)
-    icon.BackgroundTransparency = 1
-    icon.Text = data.icon or "🌒"
-    icon.TextScaled = true
-    icon.Parent = frame
-
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -55, 0, 28)
-    title.Position = UDim2.new(0, 50, 0, 5)
-    title.BackgroundTransparency = 1
-    title.Text = data.title or "EclipseLib"
-    title.TextColor3 = Theme.Accent
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 15
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = frame
-
-    local msg = Instance.new("TextLabel")
-    msg.Size = UDim2.new(1, -55, 0, 28)
-    msg.Position = UDim2.new(0, 50, 0, 30)
-    msg.BackgroundTransparency = 1
-    msg.Text = data.text or ""
-    msg.TextColor3 = Theme.SubText
-    msg.Font = Enum.Font.Gotham
-    msg.TextSize = 13
-    msg.TextXAlignment = Enum.TextXAlignment.Left
-    msg.TextWrapped = true
-    msg.Parent = frame
-
-    local bar = Instance.new("Frame")
-    bar.Size = UDim2.new(1, 0, 0, 3)
-    bar.Position = UDim2.new(0, 0, 1, -3)
-    bar.BackgroundColor3 = Theme.Accent
-    bar.BorderSizePixel = 0
-    bar.Parent = frame
-    CC(bar, 4)
-
-    -- Slide In
-    Tween(frame, {Position = NotifyPosition}, 0.3, Enum.EasingStyle.Quart)
-    -- Progress Shrink
-    Tween(bar, {Size = UDim2.new(0,0,0,3)}, data.duration or 3, Enum.EasingStyle.Linear)
-
-    task.delay(data.duration or 3, function()
-        Tween(frame, {Position = UDim2.new(1, 300, 1, -90)}, 0.3, Enum.EasingStyle.Quart)
-        task.wait(0.3)
-        frame:Destroy()
-        isShowing = false
-        showNext()
-    end)
+local NotifHolder
+local function EnsureNotifHolder()
+    if NotifHolder and NotifHolder.Parent then return end
+    local sg = MakeScreenGui("__EclipseNotif", 9999)
+    NotifHolder = Instance.new("Frame"); NotifHolder.BackgroundTransparency=1; NotifHolder.Position=UDim2.new(1,-220,0,60); NotifHolder.Size=UDim2.new(0,210,1,-120); NotifHolder.Parent=sg
+    local ly=Instance.new("UIListLayout"); ly.SortOrder=Enum.SortOrder.LayoutOrder; ly.Padding=UDim.new(0,8); ly.VerticalAlignment=Enum.VerticalAlignment.Top; ly.Parent=NotifHolder
 end
 
 function EclipseLib:Notify(opts)
-    opts = opts or {}
-    local types = {
-        info    = { icon = "🌒", color = Theme.Accent },
-        success = { icon = "✓",  color = Color3.fromRGB(60,180,100) },
-        error   = { icon = "✖",  color = Color3.fromRGB(200,60,60) },
-        warn    = { icon = "⚠",  color = Color3.fromRGB(200,160,40) }
-    }
-    local t = types[opts.Type] or types.info
-    local title = opts.Title or "EclipseLib"
-    local content = opts.Content or ""
-    local duration = opts.Duration or 4
-
-    table.insert(NotifyQueue, {
-        title = title,
-        text = content,
-        duration = duration,
-        icon = t.icon
-    })
-    if not isShowing then
-        showNext()
-    end
+    opts=opts or {}
+    local title=opts.Title or " EclipseLib"; local content=opts.Content or ""; local duration=opts.Duration or 4; local ntype=opts.Type or "info"
+    EnsureNotifHolder()
+    local tc={info=Color3.fromRGB(100,60,200),success=Color3.fromRGB(60,180,100),error=Color3.fromRGB(200,60,60),warn=Color3.fromRGB(200,160,40)}
+    local accent=tc[ntype] or tc.info
+    local card=Instance.new("Frame"); card.BackgroundColor3=Theme.Notif_BG; card.Size=UDim2.new(1,0,0,70); card.ClipsDescendants=true; card.Parent=NotifHolder; CC(card,10); CS(card,accent,1.5)
+    local bar=Instance.new("Frame"); bar.BackgroundColor3=accent; bar.Size=UDim2.new(0,4,1,0); bar.BorderSizePixel=0; bar.Parent=card; CC(bar,4)
+    local tL=Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,12,0,8); tL.Size=UDim2.new(1,-16,0,20); tL.Text=title; tL.TextColor3=Theme.Text; tL.Font=Enum.Font.GothamBold; tL.TextSize=13; tL.TextXAlignment=Enum.TextXAlignment.Left; tL.Parent=card
+    local cL=Instance.new("TextLabel"); cL.BackgroundTransparency=1; cL.Position=UDim2.new(0,12,0,30); cL.Size=UDim2.new(1,-16,0,32); cL.Text=content; cL.TextColor3=Theme.SubText; cL.Font=Enum.Font.Gotham; cL.TextSize=11; cL.TextXAlignment=Enum.TextXAlignment.Left; cL.TextWrapped=true; cL.Parent=card
+    local prog=Instance.new("Frame"); prog.BackgroundColor3=accent; prog.Size=UDim2.new(1,0,0,2); prog.Position=UDim2.new(0,0,1,-2); prog.BorderSizePixel=0; prog.Parent=card
+    card.Position=UDim2.new(1,10,0,0); Tween(card,{Position=UDim2.new(0,0,0,0)},0.3)
+    TweenService:Create(prog,TweenInfo.new(duration,Enum.EasingStyle.Linear),{Size=UDim2.new(0,0,0,2)}):Play()
+    task.delay(duration,function() Tween(card,{Position=UDim2.new(1,10,0,0)},0.3); task.wait(0.35); card:Destroy() end)
 end
 
---  Key System (unchanged but uses new Notify)
 local function ShowKeySystem(opts, onSuccess)
     local keyList=opts.Key or {}; local keyTitle=opts.KeyTitle or "  Key"; local keyDesc=opts.KeyDescription or " Key "; local keyLink=opts.KeyLink or ""
     local saveFolder=opts.SaveFolder or "EclipseLib"; local keyFile=saveFolder.."/eclipse_key.dat"
     local function CheckSavedKey()
-        if not HasFileSupport() then return false end
         local ok, saved = pcall(function()
             if not isfolder(saveFolder) then return nil end
             if not isfile(keyFile) then return nil end
@@ -427,7 +319,6 @@ local function ShowKeySystem(opts, onSuccess)
         return false
     end
     local function SaveKey(key)
-        if not HasFileSupport() then return end
         pcall(function()
             if not isfolder(saveFolder) then makefolder(saveFolder) end
             writefile(keyFile, key)
@@ -485,7 +376,6 @@ local function ShowKeySystem(opts, onSuccess)
     end)
 end
 
---  Main Window Function
 function EclipseLib:CreateWindow(opts)
     opts=opts or {}
     local windowName=opts.Name or "EclipseLib"
@@ -502,7 +392,7 @@ function EclipseLib:CreateWindow(opts)
     local tbFix=Instance.new("Frame"); tbFix.BackgroundColor3=Theme.Secondary; tbFix.Size=UDim2.new(1,0,0,10); tbFix.Position=UDim2.new(0,0,1,-10); tbFix.BorderSizePixel=0; tbFix.Parent=TopBar
     local TitleLbl=Instance.new("TextLabel"); TitleLbl.BackgroundTransparency=1; TitleLbl.Position=UDim2.new(0,12,0,0); TitleLbl.Size=UDim2.new(1,-80,1,0); TitleLbl.Text="  "..windowName; TitleLbl.TextColor3=Theme.Text; TitleLbl.Font=Enum.Font.GothamBold; TitleLbl.TextSize=14; TitleLbl.TextXAlignment=Enum.TextXAlignment.Left; TitleLbl.Parent=TopBar
     local CloseBtn=Instance.new("TextButton"); CloseBtn.BackgroundColor3=Color3.fromRGB(180,50,50); CloseBtn.Size=UDim2.new(0,22,0,22); CloseBtn.Position=UDim2.new(1,-30,0.5,-11); CloseBtn.Text=""; CloseBtn.TextColor3=Color3.fromRGB(255,255,255); CloseBtn.Font=Enum.Font.GothamBold; CloseBtn.TextSize=12; CloseBtn.Parent=TopBar; CC(CloseBtn,6)
-    local MinBtn=Instance.new("TextButton"); MinBtn.BackgroundColor3=Color3.fromRGB(60,60,80); MinBtn.Size=UDim2.new(0,22,0,22); MinBtn.Position=UDim2.new(1,-56,0.5,-11); MinBtn.Text="—"; MinBtn.TextColor3=Theme.Text; MinBtn.Font=Enum.Font.GothamBold; MinBtn.TextSize=12; MinBtn.Parent=TopBar; CC(MinBtn,6)
+    local MinBtn=Instance.new("TextButton"); MinBtn.BackgroundColor3=Color3.fromRGB(60,60,80); MinBtn.Size=UDim2.new(0,22,0,22); MinBtn.Position=UDim2.new(1,-56,0.5,-11); MinBtn.Text="�"; MinBtn.TextColor3=Theme.Text; MinBtn.Font=Enum.Font.GothamBold; MinBtn.TextSize=12; MinBtn.Parent=TopBar; CC(MinBtn,6)
     MakeDraggable(Main,TopBar)
     local Body=Instance.new("Frame"); Body.BackgroundTransparency=1; Body.Position=UDim2.new(0,0,0,38); Body.Size=UDim2.new(1,0,1,-38); Body.Parent=Main
     local TabBar=Instance.new("ScrollingFrame"); TabBar.BackgroundColor3=Theme.Secondary; TabBar.Size=UDim2.new(0,115,1,0); TabBar.ScrollBarThickness=2; TabBar.CanvasSize=UDim2.new(0,0,0,0); TabBar.ScrollingDirection=Enum.ScrollingDirection.Y; TabBar.Parent=Body; CS(TabBar,Theme.Border,1)
@@ -514,7 +404,7 @@ function EclipseLib:CreateWindow(opts)
     MinBtn.MouseButton1Click:Connect(function()
         isOpen=not isOpen
         Tween(Main,{Size=isOpen and UDim2.new(0,500,0,350) or UDim2.new(0,500,0,38)},0.3)
-        MinBtn.Text=isOpen and "—" or ""
+        MinBtn.Text=isOpen and "�" or ""
     end)
 
     local floatSG=MakeScreenGui("__EclipseFloat",998)
@@ -532,7 +422,7 @@ function EclipseLib:CreateWindow(opts)
         floatBtn.Visible=false; Main.Visible=true
         Main.Size=UDim2.new(0,500,0,0)
         Tween(Main,{Size=UDim2.new(0,500,0,350)},0.4,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
-        isOpen=true; MinBtn.Text="—"
+        isOpen=true; MinBtn.Text="�"
     end)
 
     local WindowObj={}; local tabButtons={}; local tabFrames={}; local activeTab=nil
@@ -577,7 +467,7 @@ function EclipseLib:CreateWindow(opts)
     local function RegText(l) table.insert(TR.texts,l) end
     local function RegSub(l) table.insert(TR.subtexts,l) end
 
-    -- Active Tab Indicator
+    --  PATCH 2: SetActiveTab + Active Tab Indicator
     local function SetActiveTab(name)
         for n,btn in pairs(tabButtons) do
             local isAct = (n == name)
@@ -588,6 +478,7 @@ function EclipseLib:CreateWindow(opts)
                 Tween(btn,{BackgroundColor3=Theme.TabInactive},0.2)
                 btn.TextColor3=Theme.SubText
             end
+            -- toggle indicator
             local ind = btn:FindFirstChild("_Indicator")
             if ind then ind.Visible = isAct end
         end
@@ -603,6 +494,7 @@ function EclipseLib:CreateWindow(opts)
         return sf
     end
 
+    --  PATCH 2: MakeTabBtn + Indicator frame
     local function MakeTabBtn(label,active)
         local btn=Instance.new("TextButton")
         btn.BackgroundColor3=active and Theme.TabActive or Theme.TabInactive
@@ -614,6 +506,7 @@ function EclipseLib:CreateWindow(opts)
         btn.TextWrapped=true
         btn.Parent=TabBar
         CC(btn,8)
+        -- indicator 
         local ind=Instance.new("Frame")
         ind.Name="_Indicator"
         ind.BackgroundColor3=Theme.Accent
@@ -646,7 +539,8 @@ function EclipseLib:CreateWindow(opts)
             local btn=Instance.new("TextButton"); btn.BackgroundColor3=Theme.Secondary; btn.Size=UDim2.new(0,60,0,20); btn.Position=UDim2.new(1,xPos,0,yPos); btn.Text=" Copy"; btn.TextColor3=Theme.Accent; btn.Font=Enum.Font.GothamBold; btn.TextSize=9; btn.Parent=parent; CC(btn,5); CS(btn,Theme.Accent,1)
             btn.MouseButton1Click:Connect(function()
                 SetClipboard(tostring(getCopyVal()))
-                local old=btn.Text; btn.Text=" !"; Tween(btn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.1)
+                local old=btn.Text; btn.Text=" !"
+                Tween(btn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.1)
                 task.wait(1.2); btn.Text=old; Tween(btn,{BackgroundColor3=Theme.Secondary},0.15)
             end)
         end
@@ -665,7 +559,8 @@ function EclipseLib:CreateWindow(opts)
                 local cpBtn=Instance.new("TextButton"); cpBtn.BackgroundColor3=Theme.Secondary; cpBtn.Size=UDim2.new(0,60,0,22); cpBtn.Position=UDim2.new(1,-70,0.5,-11); cpBtn.Text=" Copy"; cpBtn.TextColor3=Theme.Accent; cpBtn.Font=Enum.Font.GothamBold; cpBtn.TextSize=9; cpBtn.Parent=c; CC(cpBtn,5); CS(cpBtn,Theme.Accent,1)
                 cpBtn.MouseButton1Click:Connect(function()
                     SetClipboard(tostring(valFn()))
-                    local old=cpBtn.Text; cpBtn.Text=" !"; Tween(cpBtn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.1)
+                    local old=cpBtn.Text; cpBtn.Text=" !"
+                    Tween(cpBtn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.1)
                     task.wait(1.2); cpBtn.Text=old; Tween(cpBtn,{BackgroundColor3=Theme.Secondary},0.15)
                 end)
             end
@@ -711,7 +606,7 @@ function EclipseLib:CreateWindow(opts)
         wBtn.MouseButton1Click:Connect(function() SetActiveTab("_Welcome") end)
     end
 
-    -- Settings Tab (with notify position control)
+    -- Settings Tab
     do
         local sBtn=MakeTabBtn("  UI",false); local sFrame=MakeSF("Frame_Settings")
         tabButtons["_Settings"]=sBtn; tabFrames["_Settings"]=sFrame
@@ -727,8 +622,7 @@ function EclipseLib:CreateWindow(opts)
             Slider_BG=Color3.fromRGB(35,32,50),Notif_BG=Color3.fromRGB(20,18,30),Notif_Border=Color3.fromRGB(100,60,200),
             Input_BG=Color3.fromRGB(28,25,40),Dropdown_BG=Color3.fromRGB(25,22,38),
         }
-        local currentTransparency=0; local currentSize=UDim2.new(0,500,0,350); 
-        -- Use global NotifyPosition for notification position
+        local currentTransparency=0; local currentSize=UDim2.new(0,500,0,350); local currentNotifPos=UDim2.new(1,-220,0,60)
         local function ApplyAccent(c)
             Theme.Accent=c; Theme.TabActive=c; Theme.Toggle_ON=c; Theme.Slider_Fill=c; Theme.Notif_Border=c; Theme.AccentHover=c
             for n,btn in pairs(tabButtons) do
@@ -803,13 +697,13 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
         SecTitle("  Notification")
-        local nP={{"",UDim2.new(1,-10,1,-90)},{"",UDim2.new(0,10,1,-90)}}
+        local nP={{"",UDim2.new(1,-220,0,60)},{"",UDim2.new(0,10,0,60)}}
         local nRow=Instance.new("Frame"); nRow.BackgroundColor3=Theme.Secondary; nRow.Size=UDim2.new(1,0,0,48); nRow.Parent=sFrame; CC(nRow,8); CS(nRow,Theme.Border)
         local nl=Instance.new("UIListLayout"); nl.FillDirection=Enum.FillDirection.Horizontal; nl.Padding=UDim.new(0,6); nl.VerticalAlignment=Enum.VerticalAlignment.Center; nl.HorizontalAlignment=Enum.HorizontalAlignment.Center; nl.Parent=nRow
         for _,np in ipairs(nP) do
             local b=Instance.new("TextButton"); b.BackgroundColor3=Theme.TabInactive; b.Size=UDim2.new(0,110,0,30); b.Text=np[1]; b.TextColor3=Theme.Text; b.Font=Enum.Font.GothamBold; b.TextSize=11; b.Parent=nRow; CC(b,8)
             b.MouseButton1Click:Connect(function()
-                NotifyPosition = np[2]
+                currentNotifPos=np[2]; EnsureNotifHolder(); NotifHolder.Position=np[2]
                 EclipseLib:Notify({Title=" ",Content=np[1],Duration=2,Type="info"})
             end)
         end
@@ -853,8 +747,8 @@ function EclipseLib:CreateWindow(opts)
                 Tween(Main,{BackgroundTransparency=0},0.3)
                 EclipseLib:Notify({Title=" Reset ",Content="",Duration=2,Type="info"})
             end},
-            {label=" Reset Notif Pos",fn=function()
-                NotifyPosition = UDim2.new(1,-10,1,-90)
+            {label=" Reset Notif",fn=function()
+                currentNotifPos=UDim2.new(1,-220,0,60); EnsureNotifHolder(); NotifHolder.Position=currentNotifPos
                 EclipseLib:Notify({Title=" Reset ",Content=" Notification ",Duration=2,Type="info"})
             end},
         }
@@ -926,6 +820,7 @@ function EclipseLib:CreateWindow(opts)
 
         local TabAPI={}
 
+        --  PATCH 1: BaseCard + UIGradient + Left Accent Bar
         local function BaseCard(h)
             local c=Instance.new("Frame")
             c.BackgroundColor3=Theme.Secondary
@@ -933,6 +828,7 @@ function EclipseLib:CreateWindow(opts)
             c.Parent=tabFrame
             CC(c,8)
             CS(c,Theme.Border)
+            -- UIGradient 
             local grad=Instance.new("UIGradient")
             grad.Color=ColorSequence.new({
                 ColorSequenceKeypoint.new(0,Color3.fromRGB(40,36,58)),
@@ -940,6 +836,7 @@ function EclipseLib:CreateWindow(opts)
             })
             grad.Rotation=90
             grad.Parent=c
+            -- Left Accent Bar
             local leftBar=Instance.new("Frame")
             leftBar.BackgroundColor3=Theme.Accent
             leftBar.Size=UDim2.new(0,3,1,-16)
@@ -982,6 +879,7 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
 
+        --  PATCH 3: AddButton + Glow
         function TabAPI:AddButton(o)
             o=o or {}; local card=BaseCard(50)
             local nL=Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6); nL.Size=UDim2.new(0.6,0,0,18); nL.Text=o.Name or "Button"; nL.TextColor3=Theme.Text; nL.Font=Enum.Font.GothamBold; nL.TextSize=13; nL.TextXAlignment=Enum.TextXAlignment.Left; nL.Parent=card
@@ -991,6 +889,7 @@ function EclipseLib:CreateWindow(opts)
                 RunService.Heartbeat:Connect(function() local v=tostring(o.RealtimeValue()); if rL.Text~=v then rL.Text=v end end)
             end
             local btn=Instance.new("TextButton"); btn.BackgroundColor3=Theme.Accent; btn.Size=UDim2.new(0,52,0,26); btn.Position=UDim2.new(1,-62,0.5,-13); btn.Text=" RUN"; btn.TextColor3=Color3.fromRGB(255,255,255); btn.Font=Enum.Font.GothamBold; btn.TextSize=10; btn.Parent=card; CC(btn,6)
+            --  Inner Highlight Glow
             local glow=Instance.new("Frame")
             glow.Name="_Glow"
             glow.BackgroundColor3=Color3.fromRGB(255,255,255)
@@ -1129,7 +1028,8 @@ function EclipseLib:CreateWindow(opts)
             end)
             copyBtn.MouseButton1Click:Connect(function()
                 SetClipboard("Color3.fromRGB("..rV..","..gV..","..bV..")")
-                local old=copyBtn.Text; copyBtn.Text=" !"; Tween(copyBtn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.15); task.wait(1.5); copyBtn.Text=old; Tween(copyBtn,{BackgroundColor3=Theme.Secondary},0.15)
+                local old=copyBtn.Text; copyBtn.Text=" !"
+                Tween(copyBtn,{BackgroundColor3=Color3.fromRGB(30,80,40)},0.15); task.wait(1.5); copyBtn.Text=old; Tween(copyBtn,{BackgroundColor3=Theme.Secondary},0.15)
             end)
             local A={}; function A:GetColor() return Color3.fromRGB(rV,gV,bV) end; return A
         end
@@ -1200,7 +1100,7 @@ function EclipseLib:CreateWindow(opts)
     function WindowObj:Show()
         Main.Visible=true; Main.Size=UDim2.new(0,500,0,0)
         Tween(Main,{Size=UDim2.new(0,500,0,350)},0.35,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
-        floatBtn.Visible=false; isOpen=true; MinBtn.Text="—"
+        floatBtn.Visible=false; isOpen=true; MinBtn.Text="�"
     end
     function WindowObj:Hide()
         Tween(Main,{Size=UDim2.new(0,500,0,0)},0.25); task.delay(0.3,function()
@@ -1214,8 +1114,8 @@ function EclipseLib:CreateWindow(opts)
         pcall(function() ScreenGui:Destroy() end)
         pcall(function() floatSG:Destroy() end)
         pcall(function()
-            local notifyGui = LocalPlayer.PlayerGui:FindFirstChild("EclipseNotifyGui")
-            if notifyGui then notifyGui:Destroy() end
+            EnsureNotifHolder()
+            if NotifHolder and NotifHolder.Parent then NotifHolder.Parent:Destroy() end
         end)
     end
 
