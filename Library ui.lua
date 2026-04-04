@@ -280,28 +280,157 @@ local function PlayIntro(title, subtitle, onDone)
     else RunIntro_Fade(sg,title,subtitle,onDone) end
 end
 
+-- 🔔 ระบบ Notification + Queue
 local NotifHolder
+local NotifQueueEnabled = false
+local NotifQueue        = {}
+local NotifQueueBusy    = false
+
 local function EnsureNotifHolder()
     if NotifHolder and NotifHolder.Parent then return end
     local sg = MakeScreenGui("__EclipseNotif", 9999)
-    NotifHolder = Instance.new("Frame"); NotifHolder.BackgroundTransparency=1; NotifHolder.Position=UDim2.new(1,-220,0,60); NotifHolder.Size=UDim2.new(0,210,1,-120); NotifHolder.Parent=sg
-    local ly=Instance.new("UIListLayout"); ly.SortOrder=Enum.SortOrder.LayoutOrder; ly.Padding=UDim.new(0,8); ly.VerticalAlignment=Enum.VerticalAlignment.Top; ly.Parent=NotifHolder
+    NotifHolder = Instance.new("Frame")
+    NotifHolder.BackgroundTransparency = 1
+    NotifHolder.Position = UDim2.new(1, -230, 0, 60)
+    NotifHolder.Size     = UDim2.new(0, 220, 1, -120)
+    NotifHolder.Parent   = sg
+    local ly = Instance.new("UIListLayout")
+    ly.SortOrder         = Enum.SortOrder.LayoutOrder
+    ly.Padding           = UDim.new(0, 8)
+    ly.VerticalAlignment = Enum.VerticalAlignment.Top
+    ly.Parent            = NotifHolder
+end
+
+local function _DoShowNotif(opts, onDone)
+    opts = opts or {}
+    local title    = opts.Title    or "🌒 EclipseLib"
+    local content  = opts.Content  or ""
+    local duration = opts.Duration or 4
+    local ntype    = opts.Type     or "info"
+    EnsureNotifHolder()
+
+    local typeData = {
+        info    = { color = Color3.fromRGB(100, 60,  200), icon = "💜" },
+        success = { color = Color3.fromRGB(60,  180, 100), icon = "✅" },
+        error   = { color = Color3.fromRGB(200, 60,  60),  icon = "❌" },
+        warn    = { color = Color3.fromRGB(200, 160, 40),  icon = "⚠️" },
+    }
+    local td     = typeData[ntype] or typeData.info
+    local accent = td.color
+    local icon   = td.icon
+
+    local card = Instance.new("Frame")
+    card.BackgroundColor3       = Theme.Notif_BG
+    card.Size                   = UDim2.new(1, 0, 0, 82)
+    card.ClipsDescendants       = true
+    card.BackgroundTransparency = 1
+    card.Parent                 = NotifHolder
+    CC(card, 11)
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color        = accent
+    stroke.Thickness    = 1.5
+    stroke.Transparency = 0.3
+    stroke.Parent       = card
+
+    local bar = Instance.new("Frame")
+    bar.BackgroundColor3 = accent
+    bar.Size             = UDim2.new(0, 4, 1, 0)
+    bar.BorderSizePixel  = 0
+    bar.Parent           = card
+    CC(bar, 3)
+
+    local iconL = Instance.new("TextLabel")
+    iconL.BackgroundTransparency = 1
+    iconL.Position               = UDim2.new(0, 12, 0, 10)
+    iconL.Size                   = UDim2.new(0, 22, 0, 22)
+    iconL.Text                   = icon
+    iconL.TextSize               = 17
+    iconL.Font                   = Enum.Font.GothamBold
+    iconL.Parent                 = card
+
+    local tL = Instance.new("TextLabel")
+    tL.BackgroundTransparency = 1
+    tL.Position               = UDim2.new(0, 40, 0, 10)
+    tL.Size                   = UDim2.new(1, -62, 0, 20)
+    tL.Text                   = title
+    tL.TextColor3             = Theme.Text
+    tL.Font                   = Enum.Font.GothamBold
+    tL.TextSize               = 13
+    tL.TextXAlignment         = Enum.TextXAlignment.Left
+    tL.Parent                 = card
+
+    local cL = Instance.new("TextLabel")
+    cL.BackgroundTransparency = 1
+    cL.Position               = UDim2.new(0, 12, 0, 34)
+    cL.Size                   = UDim2.new(1, -20, 0, 36)
+    cL.Text                   = content
+    cL.TextColor3             = Theme.SubText
+    cL.Font                   = Enum.Font.Gotham
+    cL.TextSize               = 12
+    cL.TextXAlignment         = Enum.TextXAlignment.Left
+    cL.TextWrapped            = true
+    cL.Parent                 = card
+
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Position               = UDim2.new(1, -22, 0, 6)
+    closeBtn.Size                   = UDim2.new(0, 18, 0, 18)
+    closeBtn.Text                   = "✕"
+    closeBtn.TextColor3             = Theme.SubText
+    closeBtn.Font                   = Enum.Font.GothamBold
+    closeBtn.TextSize               = 11
+    closeBtn.Parent                 = card
+
+    local progBG = Instance.new("Frame")
+    progBG.BackgroundColor3 = Color3.fromRGB(40, 35, 58)
+    progBG.Size             = UDim2.new(1, 0, 0, 3)
+    progBG.Position         = UDim2.new(0, 0, 1, -3)
+    progBG.BorderSizePixel  = 0
+    progBG.Parent           = card
+    CC(progBG, 2)
+
+    local prog = Instance.new("Frame")
+    prog.BackgroundColor3 = accent
+    prog.Size             = UDim2.new(1, 0, 1, 0)
+    prog.BorderSizePixel  = 0
+    prog.Parent           = progBG
+    CC(prog, 2)
+
+    card.Position = UDim2.new(1, 20, 0, 0)
+    Tween(card, { Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0 }, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    TweenService:Create(prog, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Size = UDim2.new(0, 0, 1, 0) }):Play()
+
+    local dismissed = false
+    local function Dismiss()
+        if dismissed then return end
+        dismissed = true
+        Tween(card, { Position = UDim2.new(1, 20, 0, 0), BackgroundTransparency = 1 }, 0.28)
+        task.wait(0.32)
+        card:Destroy()
+        if onDone then onDone() end
+    end
+    closeBtn.MouseButton1Click:Connect(Dismiss)
+    task.delay(duration, Dismiss)
+end
+
+local function _ProcessQueue()
+    if NotifQueueBusy or #NotifQueue == 0 then return end
+    NotifQueueBusy = true
+    local next = table.remove(NotifQueue, 1)
+    _DoShowNotif(next, function()
+        NotifQueueBusy = false
+        _ProcessQueue()
+    end)
 end
 
 function EclipseLib:Notify(opts)
-    opts=opts or {}
-    local title=opts.Title or "🌒 EclipseLib"; local content=opts.Content or ""; local duration=opts.Duration or 4; local ntype=opts.Type or "info"
-    EnsureNotifHolder()
-    local tc={info=Color3.fromRGB(100,60,200),success=Color3.fromRGB(60,180,100),error=Color3.fromRGB(200,60,60),warn=Color3.fromRGB(200,160,40)}
-    local accent=tc[ntype] or tc.info
-    local card=Instance.new("Frame"); card.BackgroundColor3=Theme.Notif_BG; card.Size=UDim2.new(1,0,0,70); card.ClipsDescendants=true; card.Parent=NotifHolder; CC(card,10); CS(card,accent,1.5)
-    local bar=Instance.new("Frame"); bar.BackgroundColor3=accent; bar.Size=UDim2.new(0,4,1,0); bar.BorderSizePixel=0; bar.Parent=card; CC(bar,4)
-    local tL=Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,12,0,8); tL.Size=UDim2.new(1,-16,0,20); tL.Text=title; tL.TextColor3=Theme.Text; tL.Font=Enum.Font.GothamBold; tL.TextSize=13; tL.TextXAlignment=Enum.TextXAlignment.Left; tL.Parent=card
-    local cL=Instance.new("TextLabel"); cL.BackgroundTransparency=1; cL.Position=UDim2.new(0,12,0,30); cL.Size=UDim2.new(1,-16,0,32); cL.Text=content; cL.TextColor3=Theme.SubText; cL.Font=Enum.Font.Gotham; cL.TextSize=11; cL.TextXAlignment=Enum.TextXAlignment.Left; cL.TextWrapped=true; cL.Parent=card
-    local prog=Instance.new("Frame"); prog.BackgroundColor3=accent; prog.Size=UDim2.new(1,0,0,2); prog.Position=UDim2.new(0,0,1,-2); prog.BorderSizePixel=0; prog.Parent=card
-    card.Position=UDim2.new(1,10,0,0); Tween(card,{Position=UDim2.new(0,0,0,0)},0.3)
-    TweenService:Create(prog,TweenInfo.new(duration,Enum.EasingStyle.Linear),{Size=UDim2.new(0,0,0,2)}):Play()
-    task.delay(duration,function() Tween(card,{Position=UDim2.new(1,10,0,0)},0.3); task.wait(0.35); card:Destroy() end)
+    if NotifQueueEnabled then
+        table.insert(NotifQueue, opts or {})
+        _ProcessQueue()
+    else
+        _DoShowNotif(opts, nil)
+    end
 end
 
 local function ShowKeySystem(opts, onSuccess)
@@ -723,6 +852,47 @@ function EclipseLib:CreateWindow(opts)
             end
         end)
         UserInputService.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then dT=false end end)
+        SecTitle("🔔 ระบบคิว Notification")
+        local qCard=Instance.new("Frame"); qCard.BackgroundColor3=Theme.Secondary; qCard.Size=UDim2.new(1,0,0,54); qCard.Parent=sFrame; CC(qCard,8); CS(qCard,Theme.Border)
+        local qIcon=Instance.new("TextLabel"); qIcon.BackgroundTransparency=1; qIcon.Position=UDim2.new(0,10,0,8); qIcon.Size=UDim2.new(0,24,0,18); qIcon.Text="📋"; qIcon.TextSize=16; qIcon.Font=Enum.Font.GothamBold; qIcon.Parent=qCard
+        local qNL=Instance.new("TextLabel"); qNL.BackgroundTransparency=1; qNL.Position=UDim2.new(0,38,0,6); qNL.Size=UDim2.new(0.6,0,0,18); qNL.Text="ระบบคิว Notification"; qNL.TextColor3=Theme.Text; qNL.Font=Enum.Font.GothamBold; qNL.TextSize=12; qNL.TextXAlignment=Enum.TextXAlignment.Left; qNL.Parent=qCard
+        local qDL=Instance.new("TextLabel"); qDL.BackgroundTransparency=1; qDL.Position=UDim2.new(0,38,0,26); qDL.Size=UDim2.new(0.65,0,0,16); qDL.Text="แสดงทีละอันตามลำดับ"; qDL.TextColor3=Theme.SubText; qDL.Font=Enum.Font.Gotham; qDL.TextSize=10; qDL.TextXAlignment=Enum.TextXAlignment.Left; qDL.Parent=qCard
+        local qSW=Instance.new("Frame"); qSW.BackgroundColor3=Theme.Toggle_OFF; qSW.Size=UDim2.new(0,44,0,24); qSW.Position=UDim2.new(1,-54,0.5,-12); qSW.Parent=qCard; CC(qSW,12)
+        local qKN=Instance.new("Frame"); qKN.BackgroundColor3=Color3.fromRGB(255,255,255); qKN.Size=UDim2.new(0,18,0,18); qKN.Position=UDim2.new(0,3,0.5,-9); qKN.Parent=qSW; CC(qKN,9)
+        local qBtn=Instance.new("TextButton"); qBtn.BackgroundTransparency=1; qBtn.Size=UDim2.new(1,0,1,0); qBtn.Text=""; qBtn.Parent=qCard
+        qBtn.MouseButton1Click:Connect(function()
+            NotifQueueEnabled = not NotifQueueEnabled
+            if not NotifQueueEnabled then NotifQueue={}; NotifQueueBusy=false end
+            Tween(qSW,{BackgroundColor3=NotifQueueEnabled and Theme.Toggle_ON or Theme.Toggle_OFF},0.2)
+            Tween(qKN,{Position=NotifQueueEnabled and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)},0.2)
+            EclipseLib:Notify({
+                Title = NotifQueueEnabled and "📋 เปิดระบบคิวแล้ว" or "⚡ ปิดระบบคิวแล้ว",
+                Content = NotifQueueEnabled and "Notification จะแสดงทีละอัน" or "Notification แสดงพร้อมกันได้",
+                Duration = 2,
+                Type = "info"
+            })
+        end)
+
+        SecTitle("🔔 ระบบคิว Notification")
+        local qCard=Instance.new("Frame"); qCard.BackgroundColor3=Theme.Secondary; qCard.Size=UDim2.new(1,0,0,54); qCard.Parent=sFrame; CC(qCard,8); CS(qCard,Theme.Border)
+        local qIcon=Instance.new("TextLabel"); qIcon.BackgroundTransparency=1; qIcon.Position=UDim2.new(0,10,0,8); qIcon.Size=UDim2.new(0,24,0,18); qIcon.Text="📋"; qIcon.TextSize=16; qIcon.Font=Enum.Font.GothamBold; qIcon.Parent=qCard
+        local qNL=Instance.new("TextLabel"); qNL.BackgroundTransparency=1; qNL.Position=UDim2.new(0,38,0,6); qNL.Size=UDim2.new(0.6,0,0,18); qNL.Text="ระบบคิว Notification"; qNL.TextColor3=Theme.Text; qNL.Font=Enum.Font.GothamBold; qNL.TextSize=12; qNL.TextXAlignment=Enum.TextXAlignment.Left; qNL.Parent=qCard
+        local qDL=Instance.new("TextLabel"); qDL.BackgroundTransparency=1; qDL.Position=UDim2.new(0,38,0,26); qDL.Size=UDim2.new(0.65,0,0,16); qDL.Text="แสดงทีละอันตามลำดับ"; qDL.TextColor3=Theme.SubText; qDL.Font=Enum.Font.Gotham; qDL.TextSize=10; qDL.TextXAlignment=Enum.TextXAlignment.Left; qDL.Parent=qCard
+        local qSW=Instance.new("Frame"); qSW.BackgroundColor3=Theme.Toggle_OFF; qSW.Size=UDim2.new(0,44,0,24); qSW.Position=UDim2.new(1,-54,0.5,-12); qSW.Parent=qCard; CC(qSW,12)
+        local qKN=Instance.new("Frame"); qKN.BackgroundColor3=Color3.fromRGB(255,255,255); qKN.Size=UDim2.new(0,18,0,18); qKN.Position=UDim2.new(0,3,0.5,-9); qKN.Parent=qSW; CC(qKN,9)
+        local qBtn=Instance.new("TextButton"); qBtn.BackgroundTransparency=1; qBtn.Size=UDim2.new(1,0,1,0); qBtn.Text=""; qBtn.Parent=qCard
+        qBtn.MouseButton1Click:Connect(function()
+            NotifQueueEnabled = not NotifQueueEnabled
+            if not NotifQueueEnabled then NotifQueue={}; NotifQueueBusy=false end
+            Tween(qSW,{BackgroundColor3=NotifQueueEnabled and Theme.Toggle_ON or Theme.Toggle_OFF},0.2)
+            Tween(qKN,{Position=NotifQueueEnabled and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)},0.2)
+            EclipseLib:Notify({
+                Title   = NotifQueueEnabled and "📋 เปิดระบบคิวแล้ว" or "⚡ ปิดระบบคิวแล้ว",
+                Content = NotifQueueEnabled and "Notification จะแสดงทีละอัน" or "Notification แสดงพร้อมกันได้",
+                Duration = 2, Type = "info"
+            })
+        end)
+
         SecTitle("🔄 Reset การตั้งค่า")
         local resetCard=Instance.new("Frame"); resetCard.BackgroundColor3=Theme.Secondary; resetCard.Size=UDim2.new(1,0,0,126); resetCard.Parent=sFrame; CC(resetCard,8); CS(resetCard,Theme.Border)
         local resetLy=Instance.new("UIGridLayout"); resetLy.CellSize=UDim2.new(0.46,0,0,28); resetLy.CellPadding=UDim2.new(0.04,0,0,6); resetLy.SortOrder=Enum.SortOrder.LayoutOrder; resetLy.Parent=resetCard
