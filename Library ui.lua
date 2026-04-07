@@ -280,157 +280,145 @@ local function PlayIntro(title, subtitle, onDone)
     else RunIntro_Fade(sg,title,subtitle,onDone) end
 end
 
--- 🔔 ระบบ Notification + Queue
-local NotifHolder
-local NotifQueueEnabled = false
-local NotifQueue        = {}
-local NotifQueueBusy    = false
+local NotifQueue   = {}
+local NotifBusy    = false
 
-local function EnsureNotifHolder()
-    if NotifHolder and NotifHolder.Parent then return end
-    local sg = MakeScreenGui("__EclipseNotif", 9999)
-    NotifHolder = Instance.new("Frame")
-    NotifHolder.BackgroundTransparency = 1
-    NotifHolder.Position = UDim2.new(1, -230, 0, 60)
-    NotifHolder.Size     = UDim2.new(0, 220, 1, -120)
-    NotifHolder.Parent   = sg
-    local ly = Instance.new("UIListLayout")
-    ly.SortOrder         = Enum.SortOrder.LayoutOrder
-    ly.Padding           = UDim.new(0, 8)
-    ly.VerticalAlignment = Enum.VerticalAlignment.Top
-    ly.Parent            = NotifHolder
+local function EnsureNotifGui()
+	local existing = LocalPlayer.PlayerGui:FindFirstChild("EclipseLib_EONotify")
+	if existing then return existing end
+	local sg = Instance.new("ScreenGui")
+	sg.Name          = "EclipseLib_EONotify"
+	sg.ResetOnSpawn  = false
+	sg.DisplayOrder  = 9999
+	-- ลอง Parent CoreGui ก่อน ถ้าไม่ได้ ใช้ PlayerGui
+	pcall(function() sg.Parent = CoreGui end)
+	if not sg.Parent or sg.Parent ~= CoreGui then
+		sg.Parent = LocalPlayer:WaitForChild("PlayerGui")
+	end
+	return sg
 end
 
-local function _DoShowNotif(opts, onDone)
-    opts = opts or {}
-    local title    = opts.Title    or "🌒 EclipseLib"
-    local content  = opts.Content  or ""
-    local duration = opts.Duration or 4
-    local ntype    = opts.Type     or "info"
-    EnsureNotifHolder()
+local function _ShowNextNotif()
+	if NotifBusy or #NotifQueue == 0 then return end
+	NotifBusy = true
 
-    local typeData = {
-        info    = { color = Color3.fromRGB(100, 60,  200), icon = "💜" },
-        success = { color = Color3.fromRGB(60,  180, 100), icon = "✅" },
-        error   = { color = Color3.fromRGB(200, 60,  60),  icon = "❌" },
-        warn    = { color = Color3.fromRGB(200, 160, 40),  icon = "⚠️" },
-    }
-    local td     = typeData[ntype] or typeData.info
-    local accent = td.color
-    local icon   = td.icon
+	local opts = table.remove(NotifQueue, 1)
+	local title    = opts.Title    or "EclipseLib"
+	local content  = opts.Content  or ""
+	local duration = opts.Duration or 4
+	local ntype    = opts.Type     or "info"
 
-    local card = Instance.new("Frame")
-    card.BackgroundColor3       = Theme.Notif_BG
-    card.Size                   = UDim2.new(1, 0, 0, 82)
-    card.ClipsDescendants       = true
-    card.BackgroundTransparency = 1
-    card.Parent                 = NotifHolder
-    CC(card, 11)
+	-- [สี + ไอคอนตาม Type]
+	local typeData = {
+		info    = { color = Color3.fromRGB(100, 60,  200), icon = "🌒" },
+		success = { color = Color3.fromRGB(60,  180, 100), icon = "✅" },
+		error   = { color = Color3.fromRGB(200, 60,  60),  icon = "❌" },
+		warn    = { color = Color3.fromRGB(200, 160, 40),  icon = "⚠️" },
+	}
+	local td     = typeData[ntype] or typeData.info
+	local accent = td.color
+	local icon   = td.icon
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Color        = accent
-    stroke.Thickness    = 1.5
-    stroke.Transparency = 0.3
-    stroke.Parent       = card
+	local sg = EnsureNotifGui()
 
-    local bar = Instance.new("Frame")
-    bar.BackgroundColor3 = accent
-    bar.Size             = UDim2.new(0, 4, 1, 0)
-    bar.BorderSizePixel  = 0
-    bar.Parent           = card
-    CC(bar, 3)
+	--// [CARD]
+	local frame = Instance.new("Frame", sg)
+	frame.Size             = UDim2.new(0, 300, 0, 80)
+	frame.Position         = UDim2.new(1, 10, 1, -100)   -- เริ่มนอกจอ
+	frame.AnchorPoint      = Vector2.new(1, 1)
+	frame.BackgroundColor3 = Color3.fromRGB(18, 15, 28)
+	frame.BorderSizePixel  = 0
+	frame.ClipsDescendants = true
+	local corner = Instance.new("UICorner", frame)
+	corner.CornerRadius = UDim.new(0, 12)
+	local stroke = Instance.new("UIStroke", frame)
+	stroke.Color = accent; stroke.Thickness = 1.5; stroke.Transparency = 0.2
 
-    local iconL = Instance.new("TextLabel")
-    iconL.BackgroundTransparency = 1
-    iconL.Position               = UDim2.new(0, 12, 0, 10)
-    iconL.Size                   = UDim2.new(0, 22, 0, 22)
-    iconL.Text                   = icon
-    iconL.TextSize               = 17
-    iconL.Font                   = Enum.Font.GothamBold
-    iconL.Parent                 = card
+	--// [แถบสีซ้าย — รักษา Style EclipseLib ไว้]
+	local leftBar = Instance.new("Frame", frame)
+	leftBar.Size             = UDim2.new(0, 4, 1, 0)
+	leftBar.BackgroundColor3 = accent
+	leftBar.BorderSizePixel  = 0
+	local lb = Instance.new("UICorner", leftBar)
+	lb.CornerRadius = UDim.new(0, 4)
 
-    local tL = Instance.new("TextLabel")
-    tL.BackgroundTransparency = 1
-    tL.Position               = UDim2.new(0, 40, 0, 10)
-    tL.Size                   = UDim2.new(1, -62, 0, 20)
-    tL.Text                   = title
-    tL.TextColor3             = Theme.Text
-    tL.Font                   = Enum.Font.GothamBold
-    tL.TextSize               = 13
-    tL.TextXAlignment         = Enum.TextXAlignment.Left
-    tL.Parent                 = card
+	--// [ICON]
+	local iconL = Instance.new("TextLabel", frame)
+	iconL.Size             = UDim2.new(0, 28, 0, 28)
+	iconL.Position         = UDim2.new(0, 12, 0, 12)
+	iconL.BackgroundTransparency = 1
+	iconL.Text             = icon
+	iconL.TextSize         = 20
+	iconL.Font             = Enum.Font.GothamBold
 
-    local cL = Instance.new("TextLabel")
-    cL.BackgroundTransparency = 1
-    cL.Position               = UDim2.new(0, 12, 0, 34)
-    cL.Size                   = UDim2.new(1, -20, 0, 36)
-    cL.Text                   = content
-    cL.TextColor3             = Theme.SubText
-    cL.Font                   = Enum.Font.Gotham
-    cL.TextSize               = 12
-    cL.TextXAlignment         = Enum.TextXAlignment.Left
-    cL.TextWrapped            = true
-    cL.Parent                 = card
+	--// [TITLE]
+	local titleL = Instance.new("TextLabel", frame)
+	titleL.Size             = UDim2.new(1, -55, 0, 22)
+	titleL.Position         = UDim2.new(0, 46, 0, 10)
+	titleL.BackgroundTransparency = 1
+	titleL.Text             = title
+	titleL.TextColor3       = Color3.fromRGB(220, 220, 240)
+	titleL.Font             = Enum.Font.GothamBold
+	titleL.TextSize         = 14
+	titleL.TextXAlignment   = Enum.TextXAlignment.Left
 
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.BackgroundTransparency = 1
-    closeBtn.Position               = UDim2.new(1, -22, 0, 6)
-    closeBtn.Size                   = UDim2.new(0, 18, 0, 18)
-    closeBtn.Text                   = "✕"
-    closeBtn.TextColor3             = Theme.SubText
-    closeBtn.Font                   = Enum.Font.GothamBold
-    closeBtn.TextSize               = 11
-    closeBtn.Parent                 = card
+	--// [CONTENT]
+	local contentL = Instance.new("TextLabel", frame)
+	contentL.Size             = UDim2.new(1, -55, 0, 30)
+	contentL.Position         = UDim2.new(0, 46, 0, 34)
+	contentL.BackgroundTransparency = 1
+	contentL.Text             = content
+	contentL.TextColor3       = Color3.fromRGB(150, 148, 170)
+	contentL.Font             = Enum.Font.Gotham
+	contentL.TextSize         = 12
+	contentL.TextXAlignment   = Enum.TextXAlignment.Left
+	contentL.TextWrapped      = true
 
-    local progBG = Instance.new("Frame")
-    progBG.BackgroundColor3 = Color3.fromRGB(40, 35, 58)
-    progBG.Size             = UDim2.new(1, 0, 0, 3)
-    progBG.Position         = UDim2.new(0, 0, 1, -3)
-    progBG.BorderSizePixel  = 0
-    progBG.Parent           = card
-    CC(progBG, 2)
+	--// [PROGRESS BAR — EO Style ที่ฐาน]
+	local progressBG = Instance.new("Frame", frame)
+	progressBG.Size             = UDim2.new(1, 0, 0, 3)
+	progressBG.Position         = UDim2.new(0, 0, 1, -3)
+	progressBG.BackgroundColor3 = Color3.fromRGB(40, 35, 60)
+	progressBG.BorderSizePixel  = 0
+	local pb = Instance.new("UICorner", progressBG)
+	pb.CornerRadius = UDim.new(0, 3)
 
-    local prog = Instance.new("Frame")
-    prog.BackgroundColor3 = accent
-    prog.Size             = UDim2.new(1, 0, 1, 0)
-    prog.BorderSizePixel  = 0
-    prog.Parent           = progBG
-    CC(prog, 2)
+	local progressFill = Instance.new("Frame", progressBG)
+	progressFill.Size             = UDim2.new(1, 0, 1, 0)
+	progressFill.BackgroundColor3 = accent
+	progressFill.BorderSizePixel  = 0
+	local pf = Instance.new("UICorner", progressFill)
+	pf.CornerRadius = UDim.new(0, 3)
 
-    card.Position = UDim2.new(1, 20, 0, 0)
-    Tween(card, { Position = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 0 }, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    TweenService:Create(prog, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Size = UDim2.new(0, 0, 1, 0) }):Play()
+	--// [SLIDE IN]
+	TweenService:Create(frame,
+		TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+		{Position = UDim2.new(1, -10, 1, -100)}
+	):Play()
 
-    local dismissed = false
-    local function Dismiss()
-        if dismissed then return end
-        dismissed = true
-        Tween(card, { Position = UDim2.new(1, 20, 0, 0), BackgroundTransparency = 1 }, 0.28)
-        task.wait(0.32)
-        card:Destroy()
-        if onDone then onDone() end
-    end
-    closeBtn.MouseButton1Click:Connect(Dismiss)
-    task.delay(duration, Dismiss)
+	--// [PROGRESS BAR SHRINK]
+	TweenService:Create(progressFill,
+		TweenInfo.new(duration, Enum.EasingStyle.Linear),
+		{Size = UDim2.new(0, 0, 1, 0)}
+	):Play()
+
+	--// [SLIDE OUT + NEXT]
+	task.delay(duration, function()
+		TweenService:Create(frame,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In),
+			{Position = UDim2.new(1, 320, 1, -100)}
+		):Play()
+		task.wait(0.3)
+		frame:Destroy()
+		NotifBusy = false
+		_ShowNextNotif()
+	end)
 end
 
-local function _ProcessQueue()
-    if NotifQueueBusy or #NotifQueue == 0 then return end
-    NotifQueueBusy = true
-    local next = table.remove(NotifQueue, 1)
-    _DoShowNotif(next, function()
-        NotifQueueBusy = false
-        _ProcessQueue()
-    end)
-end
-
-function EclipseLib:Notify(opts)
-    if NotifQueueEnabled then
-        table.insert(NotifQueue, opts or {})
-        _ProcessQueue()
-    else
-        _DoShowNotif(opts, nil)
-    end
+function EclipseLib:Notify(o)
+	o = o or {}
+	table.insert(NotifQueue, o)
+	_ShowNextNotif()
 end
 
 local function ShowKeySystem(opts, onSuccess)
