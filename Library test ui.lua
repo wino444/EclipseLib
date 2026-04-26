@@ -553,6 +553,27 @@ function EclipseLib:CreateWindow(opts)
             if n==activeTab then pcall(function() Tween(btn,{BackgroundColor3=th.accent or Theme.Accent},0.2) end)
             else pcall(function() Tween(btn,{BackgroundColor3=th.inactive or Theme.TabInactive},0.2) end) end
         end
+        -- ✅ FIX: Deep scan อัพเดท Frame/UIStroke ที่ไม่ได้ register ใน TR
+        -- (เช่น cards ใน Settings Tab ที่สร้างตรงๆ ไม่ผ่าน BaseCard)
+        if th.oldBG or th.oldSec or th.oldBorder then
+            local function cEq(a,b)
+                return math.abs(a.R-b.R)<0.02 and math.abs(a.G-b.G)<0.02 and math.abs(a.B-b.B)<0.02
+            end
+            for _,obj in ipairs(Main:GetDescendants()) do
+                pcall(function()
+                    if (obj:IsA("Frame") or obj:IsA("ScrollingFrame")) and obj.BackgroundTransparency < 0.5 then
+                        local c = obj.BackgroundColor3
+                        if th.oldBG and cEq(c, th.oldBG) then
+                            Tween(obj, {BackgroundColor3=th.bg}, 0.3)
+                        elseif th.oldSec and cEq(c, th.oldSec) then
+                            Tween(obj, {BackgroundColor3=th.sec}, 0.3)
+                        end
+                    elseif obj:IsA("UIStroke") and th.oldBorder and cEq(obj.Color, th.oldBorder) then
+                        obj.Color = th.border or Theme.Border
+                    end
+                end)
+            end
+        end
     end
 
     local function RegBG(f) table.insert(TR.backgrounds,f) end
@@ -739,11 +760,13 @@ function EclipseLib:CreateWindow(opts)
         for _,th in ipairs(Themes) do
             local tb=Instance.new("TextButton"); tb.BackgroundColor3=th.bg; tb.Size=UDim2.new(1,0,1,0); tb.Text=th.name; tb.TextColor3=Color3.fromRGB(220,220,235); tb.Font=Enum.Font.GothamBold; tb.TextSize=10; tb.TextWrapped=true; tb.Parent=thCard; CC(tb,7); CS(tb,th.accent,1.5)
             tb.MouseButton1Click:Connect(function()
+                -- ✅ FIX: เก็บสีเก่าก่อน เพื่อให้ deep scan หา Frame ที่ยังไม่ register ได้
+                local oldBG, oldSec, oldBorder = Theme.Background, Theme.Secondary, Theme.Border
                 Theme.Background=th.bg; Theme.Secondary=th.sec; Theme.Border=th.border
                 Theme.TabInactive=th.inactive; Theme.Accent=th.accent; Theme.TabActive=th.accent
                 Theme.Toggle_ON=th.accent; Theme.Slider_Fill=th.accent; Theme.Notif_Border=th.accent
                 Theme.Dropdown_BG=th.sec; Theme.Input_BG=th.sec; Theme.Slider_BG=th.sec
-                ApplyThemeAll({bg=th.bg,sec=th.sec,accent=th.accent,border=th.border,inactive=th.inactive,text=Theme.Text,subtext=Theme.SubText})
+                ApplyThemeAll({bg=th.bg,sec=th.sec,accent=th.accent,border=th.border,inactive=th.inactive,text=Theme.Text,subtext=Theme.SubText,oldBG=oldBG,oldSec=oldSec,oldBorder=oldBorder})
                 EclipseLib:Notify({Title="🎨 เปลี่ยน Theme แล้ว",Content=th.name,Duration=2,Type="success"})
             end)
         end
@@ -1053,221 +1076,6 @@ function EclipseLib:CreateWindow(opts)
             if o.ConfigKey then ConfigSystem:Register(o.ConfigKey,function() return state end,function(v) Apply(v) end) end
             local A={}; function A:SetState(s) Apply(s) end; function A:GetState() return state end; return A
         end
-        
-        -- ══════════════════════════════════════════════════════
---  เพิ่ม AddRow เข้าใน TabAPI
---  วางใน function WindowObj:CreateTab(...)
---  ต่อท้ายจาก AddButton / AddToggle ฯลฯ
--- ══════════════════════════════════════════════════════
-
-function TabAPI:AddRow(o)
-    o = o or {}
-    local rowHeight = o.Height or 50  -- ความสูงของแต่ละ card ในแถว
-
-    -- 🔲 Container หลัก (โปร่งใส ไม่มีพื้นหลัง)
-    local container = Instance.new("Frame")
-    container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, 0, 0, rowHeight)
-    container.Parent = tabFrame
-
-    -- 📐 UIGridLayout — 2 คอลัมน์อัตโนมัติ
-    local grid = Instance.new("UIGridLayout")
-    grid.CellSize        = UDim2.new(0.5, -4, 1, 0)  -- ครึ่งนึงต่อช่อง
-    grid.CellPadding     = UDim2.new(0, 6, 0, 0)
-    grid.FillDirection   = Enum.FillDirection.Horizontal
-    grid.SortOrder       = Enum.SortOrder.LayoutOrder
-    grid.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    grid.VerticalAlignment   = Enum.VerticalAlignment.Center
-    grid.Parent          = container
-
-    -- เมื่อ grid เปลี่ยนขนาด ให้ปรับ container ตาม
-    grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        container.Size = UDim2.new(1, 0, 0, grid.AbsoluteContentSize.Y)
-    end)
-
-    -- ─────────────────────────────────────────────────
-    --  RowAPI — สร้าง element ภายใน Row
-    -- ─────────────────────────────────────────────────
-    local RowAPI = {}
-
-    -- 🔧 BaseCard ของ Row (เล็กลง ไม่มี leftbar ยาว)
-    local function RowCard()
-        local c = Instance.new("Frame")
-        c.BackgroundColor3 = Theme.Secondary
-        c.Size             = UDim2.new(1, 0, 1, 0)
-        c.Parent           = container
-        CC(c, 8)
-        CS(c, Theme.Border)
-        local grad = Instance.new("UIGradient")
-        grad.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 36, 58)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(22, 22, 30)),
-        })
-        grad.Rotation = 90
-        grad.Parent = c
-        -- left bar เล็กๆ
-        local lb = Instance.new("Frame")
-        lb.BackgroundColor3 = Theme.Accent
-        lb.Size             = UDim2.new(0, 3, 1, -12)
-        lb.Position         = UDim2.new(0, 0, 0, 6)
-        lb.BorderSizePixel  = 0
-        lb.Parent           = c
-        CC(lb, 2)
-        RegSec(c)
-        return c
-    end
-
-    -- ── AddButton ──────────────────────────────────
-    function RowAPI:AddButton(o)
-        o = o or {}
-        local card = RowCard()
-
-        local nL = Instance.new("TextLabel")
-        nL.BackgroundTransparency = 1
-        nL.Position    = UDim2.new(0, 8, 0, 5)
-        nL.Size        = UDim2.new(1, -16, 0, 16)
-        nL.Text        = o.Name or "Button"
-        nL.TextColor3  = Theme.Text
-        nL.Font        = Enum.Font.GothamBold
-        nL.TextSize    = 11
-        nL.TextXAlignment = Enum.TextXAlignment.Left
-        nL.TextTruncate   = Enum.TextTruncate.AtEnd
-        nL.Parent      = card
-
-        local dL = Instance.new("TextLabel")
-        dL.BackgroundTransparency = 1
-        dL.Position    = UDim2.new(0, 8, 0, 22)
-        dL.Size        = UDim2.new(1, -16, 0, 13)
-        dL.Text        = o.Description or ""
-        dL.TextColor3  = Theme.SubText
-        dL.Font        = Enum.Font.Gotham
-        dL.TextSize    = 9
-        dL.TextXAlignment = Enum.TextXAlignment.Left
-        dL.TextTruncate   = Enum.TextTruncate.AtEnd
-        dL.Parent      = card
-
-        local btn = Instance.new("TextButton")
-        btn.BackgroundColor3 = Theme.Accent
-        btn.Size     = UDim2.new(1, -16, 0, 20)
-        btn.Position = UDim2.new(0, 8, 1, -26)
-        btn.Text     = "▶ RUN"
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.Font     = Enum.Font.GothamBold
-        btn.TextSize = 9
-        btn.Parent   = card
-        CC(btn, 5)
-
-        local glow = Instance.new("Frame")
-        glow.BackgroundColor3  = Color3.fromRGB(255, 255, 255)
-        glow.BackgroundTransparency = 0.82
-        glow.Size    = UDim2.new(1, 0, 0.5, 0)
-        glow.BorderSizePixel = 0
-        glow.ZIndex  = btn.ZIndex + 1
-        glow.Parent  = btn
-        CC(glow, 5)
-
-        btn.MouseButton1Down:Connect(function()
-            Tween(glow, { BackgroundTransparency = 0.95 }, 0.08)
-        end)
-        btn.MouseButton1Up:Connect(function()
-            Tween(glow, { BackgroundTransparency = 0.82 }, 0.15)
-        end)
-        btn.MouseButton1Click:Connect(function()
-            Tween(btn, { BackgroundColor3 = Theme.AccentHover }, 0.1)
-            task.wait(0.1)
-            Tween(btn, { BackgroundColor3 = Theme.Accent }, 0.1)
-            if o.Callback then o.Callback() end
-        end)
-    end
-
-    -- ── AddToggle ──────────────────────────────────
-    function RowAPI:AddToggle(o)
-        o = o or {}
-        local state = o.Default or false
-        local card  = RowCard()
-
-        local nL = Instance.new("TextLabel")
-        nL.BackgroundTransparency = 1
-        nL.Position    = UDim2.new(0, 8, 0, 5)
-        nL.Size        = UDim2.new(1, -16, 0, 16)
-        nL.Text        = o.Name or "Toggle"
-        nL.TextColor3  = Theme.Text
-        nL.Font        = Enum.Font.GothamBold
-        nL.TextSize    = 11
-        nL.TextXAlignment = Enum.TextXAlignment.Left
-        nL.TextTruncate   = Enum.TextTruncate.AtEnd
-        nL.Parent      = card
-
-        local dL = Instance.new("TextLabel")
-        dL.BackgroundTransparency = 1
-        dL.Position    = UDim2.new(0, 8, 0, 22)
-        dL.Size        = UDim2.new(1, -16, 0, 13)
-        dL.Text        = o.Description or ""
-        dL.TextColor3  = Theme.SubText
-        dL.Font        = Enum.Font.Gotham
-        dL.TextSize    = 9
-        dL.TextXAlignment = Enum.TextXAlignment.Left
-        dL.TextTruncate   = Enum.TextTruncate.AtEnd
-        dL.Parent      = card
-
-        local sw = Instance.new("Frame")
-        sw.BackgroundColor3 = state and Theme.Toggle_ON or Theme.Toggle_OFF
-        sw.Size     = UDim2.new(0, 36, 0, 20)
-        sw.Position = UDim2.new(0.5, -18, 1, -26)
-        sw.Parent   = card
-        CC(sw, 10)
-
-        local kn = Instance.new("Frame")
-        kn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        kn.Size     = UDim2.new(0, 14, 0, 14)
-        kn.Position = state and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)
-        kn.Parent   = sw
-        CC(kn, 7)
-
-        local ca = Instance.new("TextButton")
-        ca.BackgroundTransparency = 1
-        ca.Size   = UDim2.new(1, 0, 1, 0)
-        ca.Text   = ""
-        ca.Parent = card
-
-        local function Apply(s)
-            state = s
-            Tween(sw, { BackgroundColor3 = s and Theme.Toggle_ON or Theme.Toggle_OFF }, 0.2)
-            Tween(kn, { Position = s and UDim2.new(1, -17, 0.5, -7) or UDim2.new(0, 3, 0.5, -7) }, 0.2)
-            if o.Callback then o.Callback(s) end
-        end
-        ca.MouseButton1Click:Connect(function() Apply(not state) end)
-
-        local A = {}
-        function A:SetState(s) Apply(s) end
-        function A:GetState() return state end
-        return A
-    end
-
-    -- ── AddLabel ───────────────────────────────────
-    function RowAPI:AddLabel(o)
-        o = o or {}
-        local card = RowCard()
-
-        local lbl = Instance.new("TextLabel")
-        lbl.BackgroundTransparency = 1
-        lbl.Size   = UDim2.new(1, -16, 1, 0)
-        lbl.Position = UDim2.new(0, 8, 0, 0)
-        lbl.Text   = o.Text or ""
-        lbl.TextColor3 = Theme.SubText
-        lbl.Font   = Enum.Font.Gotham
-        lbl.TextSize = 11
-        lbl.TextWrapped = true
-        lbl.TextXAlignment = Enum.TextXAlignment.Left
-        lbl.Parent = card
-
-        local A = {}
-        function A:SetText(t) lbl.Text = t end
-        return A
-    end
-
-    return RowAPI
-end
 
         function TabAPI:AddSlider(o)
             o=o or {}; local mn=o.Min or 0; local mx=o.Max or 100; local val=math.clamp(o.Default or mn,mn,mx); local card=BaseCard(60)
