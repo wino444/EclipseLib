@@ -32,11 +32,17 @@ local Theme = {
     Dropdown_BG  = Color3.fromRGB(22, 18, 36),
 }
 
-local Players          = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService     = game:GetService("TweenService")
-local RunService       = game:GetService("RunService")
-local CoreGui          = game:GetService("CoreGui")
+-- ฟังก์ชันพรางตัว
+local function getService(name)
+	local service = game:GetService(name)
+	return if cloneref then cloneref(service) else service
+end
+
+local Players          = getService("Players")
+local UserInputService = getService("UserInputService")
+local TweenService     = getService("TweenService")
+local RunService       = getService("RunService")
+local CoreGui          = getService("CoreGui")
 local LocalPlayer      = Players.LocalPlayer
 
 local function Tween(obj, props, t, style, dir)
@@ -684,11 +690,14 @@ function EclipseLib:CreateWindow(opts)
         end
         MakeInfoCard("🗺️","ชื่อแมพ",function()
             local name=""
-            pcall(function() name=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
-            if not name or name=="" then pcall(function() name=game.Name end) end
-            if not name or name=="" then name="ไม่พบชื่อแมพ" end
-            return name
-        end, true)
+           pcall(function()
+           local MPS = getService("MarketplaceService") -- ใช้ getService แทน
+                   name = MPS:GetProductInfo(game.PlaceId).Name
+           end)
+         if not name or name=="" then pcall(function() name=game.Name end) end
+         if not name or name=="" then name="ไม่พบชื่อแมพ" end
+         return name 
+       end, true)
         MakeInfoCard("📍","Place ID",function() return tostring(game.PlaceId) end, true)
         MakeInfoCard("⏳","อายุบัญชี",function()
             local days=LocalPlayer.AccountAge or 0
