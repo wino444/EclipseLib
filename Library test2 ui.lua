@@ -1236,7 +1236,7 @@ function EclipseLib:CreateWindow(opts)
             -- Left accent bar
             local leftBar=Instance.new("Frame")
             leftBar.BackgroundColor3=Theme.Accent
-            leftBar.Size=UDim2.new(0,3,0,2000)
+            leftBar.Size = UDim2.new(0,3,1,-16)
             leftBar.Position=UDim2.new(0,0,0,8)
             leftBar.BorderSizePixel=0
             leftBar.ZIndex=card.ZIndex+1
