@@ -12,30 +12,37 @@ local IntroConfig = {
 }
 
 local Theme = {
-    Background   = Color3.fromRGB(15, 15, 20),
-    Secondary    = Color3.fromRGB(22, 22, 30),
-    Accent       = Color3.fromRGB(100, 60, 200),
-    AccentHover  = Color3.fromRGB(120, 80, 220),
-    Text         = Color3.fromRGB(220, 220, 235),
-    SubText      = Color3.fromRGB(140, 140, 160),
-    Border       = Color3.fromRGB(50, 40, 80),
-    TabActive    = Color3.fromRGB(100, 60, 200),
-    TabInactive  = Color3.fromRGB(30, 28, 40),
-    Toggle_ON    = Color3.fromRGB(100, 60, 200),
-    Toggle_OFF   = Color3.fromRGB(50, 45, 65),
-    Slider_Fill  = Color3.fromRGB(100, 60, 200),
-    Slider_BG    = Color3.fromRGB(35, 32, 50),
-    Notif_BG     = Color3.fromRGB(20, 18, 30),
-    Notif_Border = Color3.fromRGB(100, 60, 200),
-    Input_BG     = Color3.fromRGB(28, 25, 40),
-    Dropdown_BG  = Color3.fromRGB(25, 22, 38),
+    -- 🌒 Eclipse (default) — ม่วง Premium Dark
+    Background   = Color3.fromRGB(12, 10, 18),
+    Secondary    = Color3.fromRGB(20, 17, 30),
+    Accent       = Color3.fromRGB(120, 70, 230),
+    AccentHover  = Color3.fromRGB(148, 98, 255),
+    Text         = Color3.fromRGB(232, 226, 248),
+    SubText      = Color3.fromRGB(152, 142, 180),
+    Border       = Color3.fromRGB(62, 46, 105),
+    TabActive    = Color3.fromRGB(120, 70, 230),
+    TabInactive  = Color3.fromRGB(28, 24, 44),
+    Toggle_ON    = Color3.fromRGB(120, 70, 230),
+    Toggle_OFF   = Color3.fromRGB(55, 48, 78),
+    Slider_Fill  = Color3.fromRGB(120, 70, 230),
+    Slider_BG    = Color3.fromRGB(38, 33, 60),
+    Notif_BG     = Color3.fromRGB(16, 13, 26),
+    Notif_Border = Color3.fromRGB(120, 70, 230),
+    Input_BG     = Color3.fromRGB(24, 20, 40),
+    Dropdown_BG  = Color3.fromRGB(22, 18, 36),
 }
 
-local Players          = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService     = game:GetService("TweenService")
-local RunService       = game:GetService("RunService")
-local CoreGui          = game:GetService("CoreGui")
+-- ฟังก์ชันพรางตัว
+local function getService(name)
+	local service = game:GetService(name)
+	return if cloneref then cloneref(service) else service
+end
+
+local Players          = getService("Players")
+local UserInputService = getService("UserInputService")
+local TweenService     = getService("TweenService")
+local RunService       = getService("RunService")
+local CoreGui          = getService("CoreGui")
 local LocalPlayer      = Players.LocalPlayer
 
 local function Tween(obj, props, t, style, dir)
@@ -553,6 +560,27 @@ function EclipseLib:CreateWindow(opts)
             if n==activeTab then pcall(function() Tween(btn,{BackgroundColor3=th.accent or Theme.Accent},0.2) end)
             else pcall(function() Tween(btn,{BackgroundColor3=th.inactive or Theme.TabInactive},0.2) end) end
         end
+        -- ✅ FIX: Deep scan อัพเดท Frame/UIStroke ที่ไม่ได้ register ใน TR
+        -- (เช่น cards ใน Settings Tab ที่สร้างตรงๆ ไม่ผ่าน BaseCard)
+        if th.oldBG or th.oldSec or th.oldBorder then
+            local function cEq(a,b)
+                return math.abs(a.R-b.R)<0.02 and math.abs(a.G-b.G)<0.02 and math.abs(a.B-b.B)<0.02
+            end
+            for _,obj in ipairs(Main:GetDescendants()) do
+                pcall(function()
+                    if (obj:IsA("Frame") or obj:IsA("ScrollingFrame")) and obj.BackgroundTransparency < 0.5 then
+                        local c = obj.BackgroundColor3
+                        if th.oldBG and cEq(c, th.oldBG) then
+                            Tween(obj, {BackgroundColor3=th.bg}, 0.3)
+                        elseif th.oldSec and cEq(c, th.oldSec) then
+                            Tween(obj, {BackgroundColor3=th.sec}, 0.3)
+                        end
+                    elseif obj:IsA("UIStroke") and th.oldBorder and cEq(obj.Color, th.oldBorder) then
+                        obj.Color = th.border or Theme.Border
+                    end
+                end)
+            end
+        end
     end
 
     local function RegBG(f) table.insert(TR.backgrounds,f) end
@@ -662,11 +690,14 @@ function EclipseLib:CreateWindow(opts)
         end
         MakeInfoCard("🗺️","ชื่อแมพ",function()
             local name=""
-            pcall(function() name=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name end)
-            if not name or name=="" then pcall(function() name=game.Name end) end
-            if not name or name=="" then name="ไม่พบชื่อแมพ" end
-            return name
-        end, true)
+           pcall(function()
+           local MPS = getService("MarketplaceService") -- ใช้ getService แทน
+                   name = MPS:GetProductInfo(game.PlaceId).Name
+           end)
+         if not name or name=="" then pcall(function() name=game.Name end) end
+         if not name or name=="" then name="ไม่พบชื่อแมพ" end
+         return name 
+       end, true)
         MakeInfoCard("📍","Place ID",function() return tostring(game.PlaceId) end, true)
         MakeInfoCard("⏳","อายุบัญชี",function()
             local days=LocalPlayer.AccountAge or 0
@@ -710,12 +741,16 @@ function EclipseLib:CreateWindow(opts)
             local l=Instance.new("TextLabel"); l.BackgroundTransparency=1; l.Size=UDim2.new(1,0,0,22); l.Text=text; l.TextColor3=Theme.Accent; l.Font=Enum.Font.GothamBold; l.TextSize=12; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=sFrame
         end
         local DefaultTheme = {
-            Background=Color3.fromRGB(15,15,20),Secondary=Color3.fromRGB(22,22,30),Accent=Color3.fromRGB(100,60,200),
-            AccentHover=Color3.fromRGB(120,80,220),Text=Color3.fromRGB(220,220,235),SubText=Color3.fromRGB(140,140,160),
-            Border=Color3.fromRGB(50,40,80),TabActive=Color3.fromRGB(100,60,200),TabInactive=Color3.fromRGB(30,28,40),
-            Toggle_ON=Color3.fromRGB(100,60,200),Toggle_OFF=Color3.fromRGB(50,45,65),Slider_Fill=Color3.fromRGB(100,60,200),
-            Slider_BG=Color3.fromRGB(35,32,50),Notif_BG=Color3.fromRGB(20,18,30),Notif_Border=Color3.fromRGB(100,60,200),
-            Input_BG=Color3.fromRGB(28,25,40),Dropdown_BG=Color3.fromRGB(25,22,38),
+            -- 🌒 Eclipse default — ใช้ reset กลับค่าเริ่มต้น
+            Background=Color3.fromRGB(12,10,18),Secondary=Color3.fromRGB(20,17,30),
+            Accent=Color3.fromRGB(120,70,230),AccentHover=Color3.fromRGB(148,98,255),
+            Text=Color3.fromRGB(232,226,248),SubText=Color3.fromRGB(152,142,180),
+            Border=Color3.fromRGB(62,46,105),TabActive=Color3.fromRGB(120,70,230),
+            TabInactive=Color3.fromRGB(28,24,44),Toggle_ON=Color3.fromRGB(120,70,230),
+            Toggle_OFF=Color3.fromRGB(55,48,78),Slider_Fill=Color3.fromRGB(120,70,230),
+            Slider_BG=Color3.fromRGB(38,33,60),Notif_BG=Color3.fromRGB(16,13,26),
+            Notif_Border=Color3.fromRGB(120,70,230),Input_BG=Color3.fromRGB(24,20,40),
+            Dropdown_BG=Color3.fromRGB(22,18,36),
         }
         local currentTransparency=0; local currentSize=UDim2.new(0,500,0,350); local currentNotifPos=UDim2.new(1,-220,0,60)
         local function ApplyAccent(c)
@@ -726,12 +761,60 @@ function EclipseLib:CreateWindow(opts)
         end
         SecTitle("🎨 Preset Themes")
         local Themes={
-            {name="🌒 Eclipse",accent=Color3.fromRGB(100,60,200),bg=Color3.fromRGB(15,15,20),sec=Color3.fromRGB(22,22,30),border=Color3.fromRGB(50,40,80),inactive=Color3.fromRGB(30,28,40)},
-            {name="🌊 Ocean",accent=Color3.fromRGB(30,120,220),bg=Color3.fromRGB(10,18,28),sec=Color3.fromRGB(15,28,42),border=Color3.fromRGB(20,60,100),inactive=Color3.fromRGB(18,32,50)},
-            {name="🌲 Forest",accent=Color3.fromRGB(40,170,90),bg=Color3.fromRGB(10,18,12),sec=Color3.fromRGB(15,26,18),border=Color3.fromRGB(25,70,35),inactive=Color3.fromRGB(18,32,20)},
-            {name="🔥 Inferno",accent=Color3.fromRGB(220,80,30),bg=Color3.fromRGB(20,10,8),sec=Color3.fromRGB(30,15,10),border=Color3.fromRGB(80,30,15),inactive=Color3.fromRGB(35,18,12)},
-            {name="🌸 Sakura",accent=Color3.fromRGB(220,80,140),bg=Color3.fromRGB(20,12,18),sec=Color3.fromRGB(30,18,26),border=Color3.fromRGB(80,30,60),inactive=Color3.fromRGB(35,18,30)},
-            {name="🖤 Midnight",accent=Color3.fromRGB(160,160,180),bg=Color3.fromRGB(8,8,10),sec=Color3.fromRGB(14,14,18),border=Color3.fromRGB(40,40,50),inactive=Color3.fromRGB(20,20,26)},
+            -- 🌒 Eclipse — ม่วงดำ Premium
+            {name="🌒 Eclipse",
+             bg=Color3.fromRGB(12,10,18),       sec=Color3.fromRGB(20,17,30),
+             accent=Color3.fromRGB(120,70,230),  accentH=Color3.fromRGB(148,98,255),
+             text=Color3.fromRGB(232,226,248),   sub=Color3.fromRGB(152,142,180),
+             border=Color3.fromRGB(62,46,105),   inactive=Color3.fromRGB(28,24,44),
+             toggleOff=Color3.fromRGB(55,48,78), sliderBG=Color3.fromRGB(38,33,60),
+             notifBG=Color3.fromRGB(16,13,26),   inputBG=Color3.fromRGB(24,20,40),
+             dropBG=Color3.fromRGB(22,18,36)},
+            -- 🌊 Ocean — ฟ้าลึก
+            {name="🌊 Ocean",
+             bg=Color3.fromRGB(8,14,26),         sec=Color3.fromRGB(12,22,42),
+             accent=Color3.fromRGB(35,145,255),   accentH=Color3.fromRGB(65,170,255),
+             text=Color3.fromRGB(215,235,255),    sub=Color3.fromRGB(120,165,215),
+             border=Color3.fromRGB(22,68,128),    inactive=Color3.fromRGB(15,30,58),
+             toggleOff=Color3.fromRGB(22,48,88),  sliderBG=Color3.fromRGB(16,36,68),
+             notifBG=Color3.fromRGB(10,18,36),    inputBG=Color3.fromRGB(14,26,52),
+             dropBG=Color3.fromRGB(12,22,46)},
+            -- 🌲 Forest — เขียวลึก
+            {name="🌲 Forest",
+             bg=Color3.fromRGB(8,14,10),          sec=Color3.fromRGB(12,24,16),
+             accent=Color3.fromRGB(48,195,105),    accentH=Color3.fromRGB(70,215,125),
+             text=Color3.fromRGB(215,242,222),     sub=Color3.fromRGB(120,178,138),
+             border=Color3.fromRGB(26,85,45),      inactive=Color3.fromRGB(15,34,22),
+             toggleOff=Color3.fromRGB(22,52,32),   sliderBG=Color3.fromRGB(16,40,24),
+             notifBG=Color3.fromRGB(10,18,13),     inputBG=Color3.fromRGB(14,28,18),
+             dropBG=Color3.fromRGB(12,24,16)},
+            -- 🔥 Inferno — ส้มแดงร้อน
+            {name="🔥 Inferno",
+             bg=Color3.fromRGB(16,8,5),            sec=Color3.fromRGB(26,13,8),
+             accent=Color3.fromRGB(245,92,28),      accentH=Color3.fromRGB(255,118,55),
+             text=Color3.fromRGB(255,236,220),      sub=Color3.fromRGB(195,148,122),
+             border=Color3.fromRGB(105,40,18),      inactive=Color3.fromRGB(40,18,11),
+             toggleOff=Color3.fromRGB(62,28,17),    sliderBG=Color3.fromRGB(46,20,12),
+             notifBG=Color3.fromRGB(20,10,6),       inputBG=Color3.fromRGB(32,15,9),
+             dropBG=Color3.fromRGB(28,13,8)},
+            -- 🌸 Sakura — ชมพูนุ่ม
+            {name="🌸 Sakura",
+             bg=Color3.fromRGB(16,10,16),           sec=Color3.fromRGB(26,16,26),
+             accent=Color3.fromRGB(242,92,158),      accentH=Color3.fromRGB(255,118,178),
+             text=Color3.fromRGB(255,232,245),       sub=Color3.fromRGB(198,152,182),
+             border=Color3.fromRGB(105,40,84),       inactive=Color3.fromRGB(40,20,38),
+             toggleOff=Color3.fromRGB(62,28,56),     sliderBG=Color3.fromRGB(46,22,42),
+             notifBG=Color3.fromRGB(20,12,19),       inputBG=Color3.fromRGB(32,16,30),
+             dropBG=Color3.fromRGB(28,14,26)},
+            -- 🖤 Midnight — เงินบนดำ
+            {name="🖤 Midnight",
+             bg=Color3.fromRGB(6,6,9),              sec=Color3.fromRGB(12,12,18),
+             accent=Color3.fromRGB(178,178,205),     accentH=Color3.fromRGB(205,205,230),
+             text=Color3.fromRGB(232,232,242),       sub=Color3.fromRGB(132,132,155),
+             border=Color3.fromRGB(46,46,65),        inactive=Color3.fromRGB(18,18,26),
+             toggleOff=Color3.fromRGB(36,36,52),     sliderBG=Color3.fromRGB(26,26,38),
+             notifBG=Color3.fromRGB(10,10,15),       inputBG=Color3.fromRGB(16,16,24),
+             dropBG=Color3.fromRGB(14,14,20)},
         }
         local thCard=Instance.new("Frame"); thCard.BackgroundColor3=Theme.Secondary; thCard.Size=UDim2.new(1,0,0,120); thCard.Parent=sFrame; CC(thCard,8); CS(thCard,Theme.Border)
         local thLy=Instance.new("UIGridLayout"); thLy.CellSize=UDim2.new(0.31,0,0,48); thLy.CellPadding=UDim2.new(0.02,0,0,6); thLy.SortOrder=Enum.SortOrder.LayoutOrder; thLy.Parent=thCard
@@ -739,11 +822,23 @@ function EclipseLib:CreateWindow(opts)
         for _,th in ipairs(Themes) do
             local tb=Instance.new("TextButton"); tb.BackgroundColor3=th.bg; tb.Size=UDim2.new(1,0,1,0); tb.Text=th.name; tb.TextColor3=Color3.fromRGB(220,220,235); tb.Font=Enum.Font.GothamBold; tb.TextSize=10; tb.TextWrapped=true; tb.Parent=thCard; CC(tb,7); CS(tb,th.accent,1.5)
             tb.MouseButton1Click:Connect(function()
-                Theme.Background=th.bg; Theme.Secondary=th.sec; Theme.Border=th.border
-                Theme.TabInactive=th.inactive; Theme.Accent=th.accent; Theme.TabActive=th.accent
-                Theme.Toggle_ON=th.accent; Theme.Slider_Fill=th.accent; Theme.Notif_Border=th.accent
-                Theme.Dropdown_BG=th.sec; Theme.Input_BG=th.sec; Theme.Slider_BG=th.sec
-                ApplyThemeAll({bg=th.bg,sec=th.sec,accent=th.accent,border=th.border,inactive=th.inactive,text=Theme.Text,subtext=Theme.SubText})
+                -- ✅ เก็บสีเก่าก่อน deep scan
+                local oldBG, oldSec, oldBorder = Theme.Background, Theme.Secondary, Theme.Border
+                -- ✅ อัพเดทครบทุก field
+                Theme.Background   = th.bg;       Theme.Secondary    = th.sec
+                Theme.Accent       = th.accent;    Theme.AccentHover  = th.accentH
+                Theme.Text         = th.text;      Theme.SubText      = th.sub
+                Theme.Border       = th.border;    Theme.TabActive    = th.accent
+                Theme.TabInactive  = th.inactive;  Theme.Toggle_ON    = th.accent
+                Theme.Toggle_OFF   = th.toggleOff; Theme.Slider_Fill  = th.accent
+                Theme.Slider_BG    = th.sliderBG;  Theme.Notif_BG     = th.notifBG
+                Theme.Notif_Border = th.accent;    Theme.Input_BG     = th.inputBG
+                Theme.Dropdown_BG  = th.dropBG
+                ApplyThemeAll({
+                    bg=th.bg, sec=th.sec, accent=th.accent, border=th.border,
+                    inactive=th.inactive, text=th.text, subtext=th.sub,
+                    oldBG=oldBG, oldSec=oldSec, oldBorder=oldBorder
+                })
                 EclipseLib:Notify({Title="🎨 เปลี่ยน Theme แล้ว",Content=th.name,Duration=2,Type="success"})
             end)
         end
@@ -1117,19 +1212,29 @@ function EclipseLib:CreateWindow(opts)
         end
 
         function TabAPI:AddParagraph(o)
-            o=o or {}
-            local titleText=o.Title or ""; local contentText=o.Content or ""
-            local lines=math.max(1,math.ceil(#contentText/42))
-            local h=46+(lines*16)
-            local card=BaseCard(h)
-            local tL=Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,10,0,8); tL.Size=UDim2.new(1,-20,0,18); tL.Text=titleText; tL.TextColor3=Theme.Text; tL.Font=Enum.Font.GothamBold; tL.TextSize=13; tL.TextXAlignment=Enum.TextXAlignment.Left; tL.Parent=card
-            local sep=Instance.new("Frame"); sep.BackgroundColor3=Theme.Border; sep.Size=UDim2.new(1,-20,0,1); sep.Position=UDim2.new(0,10,0,28); sep.BorderSizePixel=0; sep.Parent=card
-            local cL=Instance.new("TextLabel"); cL.BackgroundTransparency=1; cL.Position=UDim2.new(0,10,0,32); cL.Size=UDim2.new(1,-20,0,h-38); cL.Text=contentText; cL.TextColor3=Theme.SubText; cL.Font=Enum.Font.Gotham; cL.TextSize=12; cL.TextXAlignment=Enum.TextXAlignment.Left; cL.TextWrapped=true; cL.Parent=card
-            local A={}
-            function A:SetTitle(t) tL.Text=t end
-            function A:SetContent(t) cL.Text=t end
-            return A
-        end
+            o = o or {}
+            local l = Instance.new("TextLabel")
+            l.BackgroundTransparency = 1
+            l.Size = UDim2.new(1, 0, 0, 0)
+            l.AutomaticSize = Enum.AutomaticSize.Y
+            l.Text = o.Text or ""
+            l.TextColor3 = Theme.SubText
+            l.Font = Enum.Font.Gotham
+            l.TextSize = 12
+            l.TextXAlignment = Enum.TextXAlignment.Left
+            l.TextYAlignment = Enum.TextYAlignment.Top
+            l.TextWrapped = true
+            l.Parent = tabFrame
+    
+            RegSub(l)
+    
+        local A = {}
+             function A:SetText(t) 
+                   l.Text = t 
+                         end
+                 return A
+          end
+
 
         function TabAPI:AddColorPicker(o)
             o=o or {}
