@@ -1,5 +1,7 @@
--- 🌒 EclipseLib v5.3.1 (UI Enhanced) – PATCHED by Deekseek for Juzing
--- แก้ไข AddParagraph ให้รองรับข้อมูลยาว + SetTitle/SetContent ครบ
+-- 🌒 EclipseLib
+-- Version: 5.3.1 (UI Enhanced)
+-- Theme: Dark but Radiant
+
 local EclipseLib = {}
 EclipseLib.__index = EclipseLib
 
@@ -10,6 +12,7 @@ local IntroConfig = {
 }
 
 local Theme = {
+    -- 🌒 Eclipse (default) — ม่วง Premium Dark
     Background   = Color3.fromRGB(12, 10, 18),
     Secondary    = Color3.fromRGB(20, 17, 30),
     Accent       = Color3.fromRGB(120, 70, 230),
@@ -31,8 +34,8 @@ local Theme = {
 
 -- ฟังก์ชันพรางตัว
 local function getService(name)
-    local service = game:GetService(name)
-    return if cloneref then cloneref(service) else service
+	local service = game:GetService(name)
+	return if cloneref then cloneref(service) else service
 end
 
 local Players          = getService("Players")
@@ -284,7 +287,7 @@ local function PlayIntro(title, subtitle, onDone)
     else RunIntro_Fade(sg,title,subtitle,onDone) end
 end
 
--- [NOTIFY SYSTEM]
+-- 🌒 [NOTIFY SYSTEM - Custom EONotify]
 local _NotifyQueue = {}
 local _NotifyShowing = false
 
@@ -306,6 +309,7 @@ local function _showNextNotify()
     local data = table.remove(_NotifyQueue, 1)
     local gui = LocalPlayer.PlayerGui:FindFirstChild("EONotifyGui") or _createNotifyGui()
 
+    -- [FRAME]
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 280, 0, 70)
     frame.Position = UDim2.new(1, 10, 1, -90)
@@ -323,6 +327,7 @@ local function _showNextNotify()
     stroke.Thickness = 2
     stroke.Parent = frame
 
+    -- [ICON]
     local icon = Instance.new("TextLabel")
     icon.Size = UDim2.new(0, 40, 1, 0)
     icon.Position = UDim2.new(0, 5, 0, 0)
@@ -331,6 +336,7 @@ local function _showNextNotify()
     icon.TextScaled = true
     icon.Parent = frame
 
+    -- [TITLE]
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, -55, 0, 28)
     title.Position = UDim2.new(0, 50, 0, 5)
@@ -342,6 +348,7 @@ local function _showNextNotify()
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = frame
 
+    -- [MESSAGE]
     local msg = Instance.new("TextLabel")
     msg.Size = UDim2.new(1, -55, 0, 28)
     msg.Position = UDim2.new(0, 50, 0, 30)
@@ -354,6 +361,7 @@ local function _showNextNotify()
     msg.TextWrapped = true
     msg.Parent = frame
 
+    -- [PROGRESS BAR]
     local bar = Instance.new("Frame")
     bar.Size = UDim2.new(1, 0, 0, 3)
     bar.Position = UDim2.new(0, 0, 1, -3)
@@ -365,15 +373,18 @@ local function _showNextNotify()
     barCorner.CornerRadius = UDim.new(0, 4)
     barCorner.Parent = bar
 
+    -- [SLIDE IN]
     TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
         Position = UDim2.new(1, -10, 1, -90)
     }):Play()
 
+    -- [PROGRESS BAR SHRINK]
     local duration = data.duration or 3
     TweenService:Create(bar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
         Size = UDim2.new(0, 0, 0, 3)
     }):Play()
 
+    -- [SLIDE OUT]
     task.delay(duration, function()
         TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
             Position = UDim2.new(1, 300, 1, -90)
@@ -549,6 +560,8 @@ function EclipseLib:CreateWindow(opts)
             if n==activeTab then pcall(function() Tween(btn,{BackgroundColor3=th.accent or Theme.Accent},0.2) end)
             else pcall(function() Tween(btn,{BackgroundColor3=th.inactive or Theme.TabInactive},0.2) end) end
         end
+        -- ✅ FIX: Deep scan อัพเดท Frame/UIStroke ที่ไม่ได้ register ใน TR
+        -- (เช่น cards ใน Settings Tab ที่สร้างตรงๆ ไม่ผ่าน BaseCard)
         if th.oldBG or th.oldSec or th.oldBorder then
             local function cEq(a,b)
                 return math.abs(a.R-b.R)<0.02 and math.abs(a.G-b.G)<0.02 and math.abs(a.B-b.B)<0.02
@@ -577,6 +590,7 @@ function EclipseLib:CreateWindow(opts)
     local function RegText(l) table.insert(TR.texts,l) end
     local function RegSub(l) table.insert(TR.subtexts,l) end
 
+    -- ✨ PATCH 2: SetActiveTab + Active Tab Indicator
     local function SetActiveTab(name)
         for n,btn in pairs(tabButtons) do
             local isAct = (n == name)
@@ -587,6 +601,7 @@ function EclipseLib:CreateWindow(opts)
                 Tween(btn,{BackgroundColor3=Theme.TabInactive},0.2)
                 btn.TextColor3=Theme.SubText
             end
+            -- toggle indicator
             local ind = btn:FindFirstChild("_Indicator")
             if ind then ind.Visible = isAct end
         end
@@ -602,6 +617,7 @@ function EclipseLib:CreateWindow(opts)
         return sf
     end
 
+    -- ✨ PATCH 2: MakeTabBtn + Indicator frame
     local function MakeTabBtn(label,active)
         local btn=Instance.new("TextButton")
         btn.BackgroundColor3=active and Theme.TabActive or Theme.TabInactive
@@ -613,6 +629,7 @@ function EclipseLib:CreateWindow(opts)
         btn.TextWrapped=true
         btn.Parent=TabBar
         CC(btn,8)
+        -- indicator เส้นซ้าย
         local ind=Instance.new("Frame")
         ind.Name="_Indicator"
         ind.BackgroundColor3=Theme.Accent
@@ -674,12 +691,12 @@ function EclipseLib:CreateWindow(opts)
         MakeInfoCard("🗺️","ชื่อแมพ",function()
             local name=""
            pcall(function()
-           local MPS = getService("MarketplaceService")
+           local MPS = getService("MarketplaceService") -- ใช้ getService แทน
                    name = MPS:GetProductInfo(game.PlaceId).Name
            end)
          if not name or name=="" then pcall(function() name=game.Name end) end
          if not name or name=="" then name="ไม่พบชื่อแมพ" end
-         return name
+         return name 
        end, true)
         MakeInfoCard("📍","Place ID",function() return tostring(game.PlaceId) end, true)
         MakeInfoCard("⏳","อายุบัญชี",function()
@@ -724,6 +741,7 @@ function EclipseLib:CreateWindow(opts)
             local l=Instance.new("TextLabel"); l.BackgroundTransparency=1; l.Size=UDim2.new(1,0,0,22); l.Text=text; l.TextColor3=Theme.Accent; l.Font=Enum.Font.GothamBold; l.TextSize=12; l.TextXAlignment=Enum.TextXAlignment.Left; l.Parent=sFrame
         end
         local DefaultTheme = {
+            -- 🌒 Eclipse default — ใช้ reset กลับค่าเริ่มต้น
             Background=Color3.fromRGB(12,10,18),Secondary=Color3.fromRGB(20,17,30),
             Accent=Color3.fromRGB(120,70,230),AccentHover=Color3.fromRGB(148,98,255),
             Text=Color3.fromRGB(232,226,248),SubText=Color3.fromRGB(152,142,180),
@@ -743,6 +761,7 @@ function EclipseLib:CreateWindow(opts)
         end
         SecTitle("🎨 Preset Themes")
         local Themes={
+            -- 🌒 Eclipse — ม่วงดำ Premium
             {name="🌒 Eclipse",
              bg=Color3.fromRGB(12,10,18),       sec=Color3.fromRGB(20,17,30),
              accent=Color3.fromRGB(120,70,230),  accentH=Color3.fromRGB(148,98,255),
@@ -751,6 +770,7 @@ function EclipseLib:CreateWindow(opts)
              toggleOff=Color3.fromRGB(55,48,78), sliderBG=Color3.fromRGB(38,33,60),
              notifBG=Color3.fromRGB(16,13,26),   inputBG=Color3.fromRGB(24,20,40),
              dropBG=Color3.fromRGB(22,18,36)},
+            -- 🌊 Ocean — ฟ้าลึก
             {name="🌊 Ocean",
              bg=Color3.fromRGB(8,14,26),         sec=Color3.fromRGB(12,22,42),
              accent=Color3.fromRGB(35,145,255),   accentH=Color3.fromRGB(65,170,255),
@@ -759,6 +779,7 @@ function EclipseLib:CreateWindow(opts)
              toggleOff=Color3.fromRGB(22,48,88),  sliderBG=Color3.fromRGB(16,36,68),
              notifBG=Color3.fromRGB(10,18,36),    inputBG=Color3.fromRGB(14,26,52),
              dropBG=Color3.fromRGB(12,22,46)},
+            -- 🌲 Forest — เขียวลึก
             {name="🌲 Forest",
              bg=Color3.fromRGB(8,14,10),          sec=Color3.fromRGB(12,24,16),
              accent=Color3.fromRGB(48,195,105),    accentH=Color3.fromRGB(70,215,125),
@@ -767,6 +788,7 @@ function EclipseLib:CreateWindow(opts)
              toggleOff=Color3.fromRGB(22,52,32),   sliderBG=Color3.fromRGB(16,40,24),
              notifBG=Color3.fromRGB(10,18,13),     inputBG=Color3.fromRGB(14,28,18),
              dropBG=Color3.fromRGB(12,24,16)},
+            -- 🔥 Inferno — ส้มแดงร้อน
             {name="🔥 Inferno",
              bg=Color3.fromRGB(16,8,5),            sec=Color3.fromRGB(26,13,8),
              accent=Color3.fromRGB(245,92,28),      accentH=Color3.fromRGB(255,118,55),
@@ -775,6 +797,7 @@ function EclipseLib:CreateWindow(opts)
              toggleOff=Color3.fromRGB(62,28,17),    sliderBG=Color3.fromRGB(46,20,12),
              notifBG=Color3.fromRGB(20,10,6),       inputBG=Color3.fromRGB(32,15,9),
              dropBG=Color3.fromRGB(28,13,8)},
+            -- 🌸 Sakura — ชมพูนุ่ม
             {name="🌸 Sakura",
              bg=Color3.fromRGB(16,10,16),           sec=Color3.fromRGB(26,16,26),
              accent=Color3.fromRGB(242,92,158),      accentH=Color3.fromRGB(255,118,178),
@@ -783,6 +806,7 @@ function EclipseLib:CreateWindow(opts)
              toggleOff=Color3.fromRGB(62,28,56),     sliderBG=Color3.fromRGB(46,22,42),
              notifBG=Color3.fromRGB(20,12,19),       inputBG=Color3.fromRGB(32,16,30),
              dropBG=Color3.fromRGB(28,14,26)},
+            -- 🖤 Midnight — เงินบนดำ
             {name="🖤 Midnight",
              bg=Color3.fromRGB(6,6,9),              sec=Color3.fromRGB(12,12,18),
              accent=Color3.fromRGB(178,178,205),     accentH=Color3.fromRGB(205,205,230),
@@ -798,7 +822,9 @@ function EclipseLib:CreateWindow(opts)
         for _,th in ipairs(Themes) do
             local tb=Instance.new("TextButton"); tb.BackgroundColor3=th.bg; tb.Size=UDim2.new(1,0,1,0); tb.Text=th.name; tb.TextColor3=Color3.fromRGB(220,220,235); tb.Font=Enum.Font.GothamBold; tb.TextSize=10; tb.TextWrapped=true; tb.Parent=thCard; CC(tb,7); CS(tb,th.accent,1.5)
             tb.MouseButton1Click:Connect(function()
+                -- ✅ เก็บสีเก่าก่อน deep scan
                 local oldBG, oldSec, oldBorder = Theme.Background, Theme.Secondary, Theme.Border
+                -- ✅ อัพเดทครบทุก field
                 Theme.Background   = th.bg;       Theme.Secondary    = th.sec
                 Theme.Accent       = th.accent;    Theme.AccentHover  = th.accentH
                 Theme.Text         = th.text;      Theme.SubText      = th.sub
@@ -808,7 +834,11 @@ function EclipseLib:CreateWindow(opts)
                 Theme.Slider_BG    = th.sliderBG;  Theme.Notif_BG     = th.notifBG
                 Theme.Notif_Border = th.accent;    Theme.Input_BG     = th.inputBG
                 Theme.Dropdown_BG  = th.dropBG
-                ApplyThemeAll({bg=th.bg, sec=th.sec, accent=th.accent, border=th.border, inactive=th.inactive, text=th.text, subtext=th.sub, oldBG=oldBG, oldSec=oldSec, oldBorder=oldBorder})
+                ApplyThemeAll({
+                    bg=th.bg, sec=th.sec, accent=th.accent, border=th.border,
+                    inactive=th.inactive, text=th.text, subtext=th.sub,
+                    oldBG=oldBG, oldSec=oldSec, oldBorder=oldBorder
+                })
                 EclipseLib:Notify({Title="🎨 เปลี่ยน Theme แล้ว",Content=th.name,Duration=2,Type="success"})
             end)
         end
@@ -863,7 +893,8 @@ function EclipseLib:CreateWindow(opts)
         for _,np in ipairs(nP) do
             local b=Instance.new("TextButton"); b.BackgroundColor3=Theme.TabInactive; b.Size=UDim2.new(0,110,0,30); b.Text=np[1]; b.TextColor3=Theme.Text; b.Font=Enum.Font.GothamBold; b.TextSize=11; b.Parent=nRow; CC(b,8)
             b.MouseButton1Click:Connect(function()
-                currentNotifPos=np[2]; EclipseLib:Notify({Title="🔔 เปลี่ยนตำแหน่งแล้ว",Content=np[1],Duration=2,Type="info"})
+                currentNotifPos=np[2]; EnsureNotifHolder(); NotifHolder.Position=np[2]
+                EclipseLib:Notify({Title="🔔 เปลี่ยนตำแหน่งแล้ว",Content=np[1],Duration=2,Type="info"})
             end)
         end
         SecTitle("🌗 ความโปร่งใส UI")
@@ -891,16 +922,38 @@ function EclipseLib:CreateWindow(opts)
         local qKN=Instance.new("Frame"); qKN.BackgroundColor3=Color3.fromRGB(255,255,255); qKN.Size=UDim2.new(0,18,0,18); qKN.Position=UDim2.new(0,3,0.5,-9); qKN.Parent=qSW; CC(qKN,9)
         local qBtn=Instance.new("TextButton"); qBtn.BackgroundTransparency=1; qBtn.Size=UDim2.new(1,0,1,0); qBtn.Text=""; qBtn.Parent=qCard
         qBtn.MouseButton1Click:Connect(function()
-            -- Toggle ง่าย ๆ
-            local state = qSW.BackgroundColor3 == Theme.Toggle_OFF
-            qSW.BackgroundColor3 = state and Theme.Toggle_ON or Theme.Toggle_OFF
-            qKN.Position = state and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)
+            NotifQueueEnabled = not NotifQueueEnabled
+            if not NotifQueueEnabled then NotifQueue={}; NotifQueueBusy=false end
+            Tween(qSW,{BackgroundColor3=NotifQueueEnabled and Theme.Toggle_ON or Theme.Toggle_OFF},0.2)
+            Tween(qKN,{Position=NotifQueueEnabled and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)},0.2)
             EclipseLib:Notify({
-                Title = state and "📋 เปิดระบบคิวแล้ว" or "⚡ ปิดระบบคิวแล้ว",
-                Content = state and "Notification จะแสดงทีละอัน" or "Notification แสดงพร้อมกันได้",
+                Title = NotifQueueEnabled and "📋 เปิดระบบคิวแล้ว" or "⚡ ปิดระบบคิวแล้ว",
+                Content = NotifQueueEnabled and "Notification จะแสดงทีละอัน" or "Notification แสดงพร้อมกันได้",
+                Duration = 2,
+                Type = "info"
+            })
+        end)
+
+        SecTitle("🔔 ระบบคิว Notification")
+        local qCard=Instance.new("Frame"); qCard.BackgroundColor3=Theme.Secondary; qCard.Size=UDim2.new(1,0,0,54); qCard.Parent=sFrame; CC(qCard,8); CS(qCard,Theme.Border)
+        local qIcon=Instance.new("TextLabel"); qIcon.BackgroundTransparency=1; qIcon.Position=UDim2.new(0,10,0,8); qIcon.Size=UDim2.new(0,24,0,18); qIcon.Text="📋"; qIcon.TextSize=16; qIcon.Font=Enum.Font.GothamBold; qIcon.Parent=qCard
+        local qNL=Instance.new("TextLabel"); qNL.BackgroundTransparency=1; qNL.Position=UDim2.new(0,38,0,6); qNL.Size=UDim2.new(0.6,0,0,18); qNL.Text="ระบบคิว Notification"; qNL.TextColor3=Theme.Text; qNL.Font=Enum.Font.GothamBold; qNL.TextSize=12; qNL.TextXAlignment=Enum.TextXAlignment.Left; qNL.Parent=qCard
+        local qDL=Instance.new("TextLabel"); qDL.BackgroundTransparency=1; qDL.Position=UDim2.new(0,38,0,26); qDL.Size=UDim2.new(0.65,0,0,16); qDL.Text="แสดงทีละอันตามลำดับ"; qDL.TextColor3=Theme.SubText; qDL.Font=Enum.Font.Gotham; qDL.TextSize=10; qDL.TextXAlignment=Enum.TextXAlignment.Left; qDL.Parent=qCard
+        local qSW=Instance.new("Frame"); qSW.BackgroundColor3=Theme.Toggle_OFF; qSW.Size=UDim2.new(0,44,0,24); qSW.Position=UDim2.new(1,-54,0.5,-12); qSW.Parent=qCard; CC(qSW,12)
+        local qKN=Instance.new("Frame"); qKN.BackgroundColor3=Color3.fromRGB(255,255,255); qKN.Size=UDim2.new(0,18,0,18); qKN.Position=UDim2.new(0,3,0.5,-9); qKN.Parent=qSW; CC(qKN,9)
+        local qBtn=Instance.new("TextButton"); qBtn.BackgroundTransparency=1; qBtn.Size=UDim2.new(1,0,1,0); qBtn.Text=""; qBtn.Parent=qCard
+        qBtn.MouseButton1Click:Connect(function()
+            NotifQueueEnabled = not NotifQueueEnabled
+            if not NotifQueueEnabled then NotifQueue={}; NotifQueueBusy=false end
+            Tween(qSW,{BackgroundColor3=NotifQueueEnabled and Theme.Toggle_ON or Theme.Toggle_OFF},0.2)
+            Tween(qKN,{Position=NotifQueueEnabled and UDim2.new(1,-21,0.5,-9) or UDim2.new(0,3,0.5,-9)},0.2)
+            EclipseLib:Notify({
+                Title   = NotifQueueEnabled and "📋 เปิดระบบคิวแล้ว" or "⚡ ปิดระบบคิวแล้ว",
+                Content = NotifQueueEnabled and "Notification จะแสดงทีละอัน" or "Notification แสดงพร้อมกันได้",
                 Duration = 2, Type = "info"
             })
         end)
+
         SecTitle("🔄 Reset การตั้งค่า")
         local resetCard=Instance.new("Frame"); resetCard.BackgroundColor3=Theme.Secondary; resetCard.Size=UDim2.new(1,0,0,126); resetCard.Parent=sFrame; CC(resetCard,8); CS(resetCard,Theme.Border)
         local resetLy=Instance.new("UIGridLayout"); resetLy.CellSize=UDim2.new(0.46,0,0,28); resetLy.CellPadding=UDim2.new(0.04,0,0,6); resetLy.SortOrder=Enum.SortOrder.LayoutOrder; resetLy.Parent=resetCard
@@ -926,7 +979,7 @@ function EclipseLib:CreateWindow(opts)
                 EclipseLib:Notify({Title="🔄 Reset แล้ว",Content="ความโปร่งใสกลับค่าเริ่มต้น",Duration=2,Type="info"})
             end},
             {label="🔔 Reset Notif",fn=function()
-                currentNotifPos=UDim2.new(1,-220,0,60)
+                currentNotifPos=UDim2.new(1,-220,0,60); EnsureNotifHolder(); NotifHolder.Position=currentNotifPos
                 EclipseLib:Notify({Title="🔄 Reset แล้ว",Content="ตำแหน่ง Notification กลับค่าเริ่มต้น",Duration=2,Type="info"})
             end},
         }
@@ -998,6 +1051,7 @@ function EclipseLib:CreateWindow(opts)
 
         local TabAPI={}
 
+        -- ✨ PATCH 1: BaseCard + UIGradient + Left Accent Bar
         local function BaseCard(h)
             local c=Instance.new("Frame")
             c.BackgroundColor3=Theme.Secondary
@@ -1005,6 +1059,7 @@ function EclipseLib:CreateWindow(opts)
             c.Parent=tabFrame
             CC(c,8)
             CS(c,Theme.Border)
+            -- UIGradient ให้มีมิติ
             local grad=Instance.new("UIGradient")
             grad.Color=ColorSequence.new({
                 ColorSequenceKeypoint.new(0,Color3.fromRGB(40,36,58)),
@@ -1012,6 +1067,7 @@ function EclipseLib:CreateWindow(opts)
             })
             grad.Rotation=90
             grad.Parent=c
+            -- Left Accent Bar
             local leftBar=Instance.new("Frame")
             leftBar.BackgroundColor3=Theme.Accent
             leftBar.Size=UDim2.new(0,3,1,-16)
@@ -1054,6 +1110,7 @@ function EclipseLib:CreateWindow(opts)
             end)
         end
 
+        -- ✨ PATCH 3: AddButton + Glow
         function TabAPI:AddButton(o)
             o=o or {}; local card=BaseCard(50)
             local nL=Instance.new("TextLabel"); nL.BackgroundTransparency=1; nL.Position=UDim2.new(0,10,0,6); nL.Size=UDim2.new(0.6,0,0,18); nL.Text=o.Name or "Button"; nL.TextColor3=Theme.Text; nL.Font=Enum.Font.GothamBold; nL.TextSize=13; nL.TextXAlignment=Enum.TextXAlignment.Left; nL.Parent=card
@@ -1063,6 +1120,7 @@ function EclipseLib:CreateWindow(opts)
                 RunService.Heartbeat:Connect(function() local v=tostring(o.RealtimeValue()); if rL.Text~=v then rL.Text=v end end)
             end
             local btn=Instance.new("TextButton"); btn.BackgroundColor3=Theme.Accent; btn.Size=UDim2.new(0,52,0,26); btn.Position=UDim2.new(1,-62,0.5,-13); btn.Text="▶ RUN"; btn.TextColor3=Color3.fromRGB(255,255,255); btn.Font=Enum.Font.GothamBold; btn.TextSize=10; btn.Parent=card; CC(btn,6)
+            -- ✨ Inner Highlight Glow
             local glow=Instance.new("Frame")
             glow.Name="_Glow"
             glow.BackgroundColor3=Color3.fromRGB(255,255,255)
@@ -1153,74 +1211,25 @@ function EclipseLib:CreateWindow(opts)
             local A={}; function A:GetValue() return box.Text end; function A:SetValue(v) box.Text=v end; return A
         end
 
-        -- ✅ PATCHED AddParagraph (AutomaticSize + SetTitle/SetContent)
         function TabAPI:AddParagraph(o)
-            o = o or {}
-            local titleText = o.Title or ""
-            local contentText = o.Content or ""
-            local card = Instance.new("Frame")
-            card.BackgroundColor3 = Theme.Secondary
-            card.Size = UDim2.new(1, 0, 0, 0)
-            card.AutomaticSize = Enum.AutomaticSize.Y
-            card.Parent = tabFrame
-            CC(card, 8)
-            CS(card, Theme.Border)
-            local grad = Instance.new("UIGradient")
-            grad.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(40,36,58)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(22,22,30)),
-            })
-            grad.Rotation = 90
-            grad.Parent = card
-            local leftBar = Instance.new("Frame")
-            leftBar.BackgroundColor3 = Theme.Accent
-            leftBar.Size = UDim2.new(0, 3, 1, 0)
-            leftBar.Position = UDim2.new(0, 0, 0, 0)
-            leftBar.BorderSizePixel = 0
-            leftBar.Parent = card
-            CC(leftBar, 2)
-            local layout = Instance.new("UIListLayout")
-            layout.Padding = UDim.new(0, 6)
-            layout.SortOrder = Enum.SortOrder.LayoutOrder
-            layout.Parent = card
-            local pad = Instance.new("UIPadding")
-            pad.PaddingTop = UDim.new(0, 8)
-            pad.PaddingBottom = UDim.new(0, 8)
-            pad.PaddingLeft = UDim.new(0, 12)
-            pad.PaddingRight = UDim.new(0, 12)
-            pad.Parent = card
-            local tL = Instance.new("TextLabel")
-            tL.BackgroundTransparency = 1
-            tL.Size = UDim2.new(1, 0, 0, 18)
-            tL.Text = titleText
-            tL.TextColor3 = Theme.Text
-            tL.Font = Enum.Font.GothamBold
-            tL.TextSize = 13
-            tL.TextXAlignment = Enum.TextXAlignment.Left
-            tL.LayoutOrder = 1
-            tL.Parent = card
-            local cL = Instance.new("TextLabel")
-            cL.BackgroundTransparency = 1
-            cL.Size = UDim2.new(1, 0, 0, 0)
-            cL.AutomaticSize = Enum.AutomaticSize.Y
-            cL.Text = contentText
-            cL.TextColor3 = Theme.SubText
-            cL.Font = Enum.Font.Gotham
-            cL.TextSize = 12
-            cL.TextXAlignment = Enum.TextXAlignment.Left
-            cL.TextYAlignment = Enum.TextYAlignment.Top
-            cL.TextWrapped = true
-            cL.LayoutOrder = 2
-            cL.Parent = card
-            RegSec(card)
-            RegText(tL)
-            RegSub(cL)
-            local A = {}
-            function A:SetTitle(t)
-                tL.Text = t
-            end
+            o=o or {}
+            local titleText=o.Title or ""; local contentText=o.Content or ""
+            local lines=math.max(1,math.ceil(#contentText/42))
+            local h=46+(lines*16)
+            local card=BaseCard(h)
+            local tL=Instance.new("TextLabel"); tL.BackgroundTransparency=1; tL.Position=UDim2.new(0,10,0,8); tL.Size=UDim2.new(1,-20,0,18); tL.Text=titleText; tL.TextColor3=Theme.Text; tL.Font=Enum.Font.GothamBold; tL.TextSize=13; tL.TextXAlignment=Enum.TextXAlignment.Left; tL.Parent=card
+            local sep=Instance.new("Frame"); sep.BackgroundColor3=Theme.Border; sep.Size=UDim2.new(1,-20,0,1); sep.Position=UDim2.new(0,10,0,28); sep.BorderSizePixel=0; sep.Parent=card
+            local cL=Instance.new("TextLabel"); cL.BackgroundTransparency=1; cL.Position=UDim2.new(0,10,0,32); cL.Size=UDim2.new(1,-20,0,h-38); cL.Text=contentText; cL.TextColor3=Theme.SubText; cL.Font=Enum.Font.Gotham; cL.TextSize=12; cL.TextXAlignment=Enum.TextXAlignment.Left; cL.TextWrapped=true; cL.Parent=card
+            local A={}
+            function A:SetTitle(t) tL.Text=t end
+            -- ✅ FIX: Auto-resize card + cL ทุกครั้งที่ SetContent ถูกเรียก
+            -- รองรับข้อความยาวๆ จาก RemoteFunction scan หรืออื่นๆ
             function A:SetContent(t)
                 cL.Text = t
+                local newLines = math.max(1, math.ceil(#t / 42))
+                local newH = 46 + (newLines * 16)
+                card.Size = UDim2.new(1, 0, 0, newH)
+                cL.Size = UDim2.new(1, -20, 0, newH - 38)
             end
             return A
         end
@@ -1344,8 +1353,8 @@ function EclipseLib:CreateWindow(opts)
         pcall(function() ScreenGui:Destroy() end)
         pcall(function() floatSG:Destroy() end)
         pcall(function()
-            local gui = LocalPlayer.PlayerGui:FindFirstChild("EONotifyGui")
-            if gui then gui:Destroy() end
+            EnsureNotifHolder()
+            if NotifHolder and NotifHolder.Parent then NotifHolder.Parent:Destroy() end
         end)
     end
 
