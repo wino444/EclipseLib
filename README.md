@@ -71,12 +71,6 @@ Component เปลี่ยนสี
 
 2. การติดตั้ง
 
-🔹 โหลดจากเครื่อง (แนะนำ ✅)
-
-```lua
-local EclipseLib = loadstring(readfile("EclipseLib/library.lua"))()
-```
-
 🔹 โหลดจาก GitHub
 
 ```lua
