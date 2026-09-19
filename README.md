@@ -86,7 +86,9 @@ local EclipseLib = loadstring(game:HttpGet(
 
 ```lua
 -- 1. โหลด Library
-local EclipseLib = loadstring(readfile("EclipseLib/library.lua"))()
+local EclipseLib = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/wino444/EclipseLib/main/Library%20ui.lua"
+))()
 
 -- 2. สร้าง Window
 local Win = EclipseLib:CreateWindow({
