@@ -71,39 +71,13 @@ Component เปลี่ยนสี
 
 2. การติดตั้ง
 
+🔹 โหลดจากเครื่อง (แนะนำ ✅)
 🔹 โหลดจาก GitHub
 
 ```lua
 local EclipseLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/wino444/EclipseLib/main/Library%20ui.lua"
 ))()
-```
-
-🔹 Safe Load (แนะนำที่สุด 🛡️)
-
-```lua
-local LIBRARY_PATH = "EclipseLib/library.lua"
-
-if not isfile(LIBRARY_PATH) then
-    error("❌ ไม่พบไฟล์: " .. LIBRARY_PATH)
-end
-
-local code = readfile(LIBRARY_PATH)
-if not code or #code < 100 then
-    error("❌ ไฟล์เสียหาย")
-end
-
-local fn, err = loadstring(code)
-if not fn then
-    error("❌ Syntax error: " .. tostring(err))
-end
-
-local ok, EclipseLib = pcall(fn)
-if not ok or not EclipseLib then
-    error("❌ Execute error: " .. tostring(EclipseLib))
-end
-
-print("✅ EclipseLib v6.5.2 โหลดสำเร็จ")
 ```
 
 ---
