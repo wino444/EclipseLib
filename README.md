@@ -1,94 +1,54 @@
-📘 EclipseLib v6.5.2 — เอกสารประกอบฉบับสมบูรณ์
+📘 EclipseLib v6.5.2 — เอกสารประกอบ
 
-UI Library สำหรับ Roblox | สร้างโดย wino444 | Rainbow Fix Edition
-🌈 Rainbow 100% | 🎯 Welcome Locked | ⚙️ Settings on TopBar
+UI Library สำหรับ Roblox | สร้างโดย wino444
+👤 Profile | 🔍 Search | ⚙️ Settings | 🌈 Rainbow
 
 ---
 
 📑 สารบัญ
 
-# หัวข้อ คำอธิบาย
-1 🎉 มีอะไรใหม่ใน v6.5.2 สรุปการเปลี่ยนแปลง
-2 📦 การติดตั้ง วิธีโหลด Library
-3 🚀 Quick Start เริ่มใน 30 วินาที
-4 🌐 Global API ฟังก์ชันหลัก
-5 🪟 Window System สร้างหน้าต่าง
-6 📑 Tab System โครงสร้าง TabBar
-7 🏠 Built-in Pages Welcome + Settings
-8 🧩 Components ทั้งหมด 20+ components
-9 🎁 Accordion กลุ่มพับได้
-10 🎨 Themes 7 ธีม
-11 🌈 Rainbow Mode 🆕 แก้สมบูรณ์
-12 🔔 Notification แจ้งเตือน + เสียง
-13 💬 Dialog System Alert/Prompt/Toast
-14 🖱️ Context Menu คลิกขวา
-15 🔊 Sound System ระบบเสียง
-16 💾 Config System Save/Load
-17 🔑 Key System ระบบ Key
-18 ⌨️ Hotkeys Global Hotkeys
-19 🧹 Unload ล้างทั้งหมด
-20 🏭 UI Factory Internal helpers
-21 🔧 Best Practices เทคนิค
-22 🩺 Troubleshooting แก้ปัญหา
-23 📊 Changelog ประวัติเวอร์ชัน
+1  📦 การติดตั้ง
+2  🚀 Quick Start
+3  🌐 Global API
+4  🪟 Window System
+5  📑 Tab System
+6  👤 Built-in Pages
+7  🧩 Components ทั้งหมด
+8  🎁 Accordion
+9  🎨 Themes
+10 🌈 Rainbow Mode
+11 🔔 Notification
+12 💬 Dialog System
+13 🖱️ Context Menu
+14 🔊 Sound System
+15 💾 Config System
+16 🔑 Key System
+17 ⌨️ Hotkeys
+18 🧹 Unload
+19 🔧 Best Practices
+20 🩺 Troubleshooting
 
 ---
 
-1. มีอะไรใหม่ใน v6.5.2
+1. การติดตั้ง
 
-v6.5.2 คือ Rainbow Fix Release — แก้ปัญหา Rainbow ให้ทำงาน 100%
-
-🎯 การเปลี่ยนแปลงหลัก (จาก v6.5)
-
-# สิ่งที่แก้ ผลลัพธ์
-1 ❌ ลบ Search Tab ไม่มี bug จาก search
-2 ✅ Welcome Tab Locked อยู่บนสุดของ TabBar ตลอด
-3 ✅ Settings ⚙️ บน TopBar ไม่ใช่ Tab — เปิดเป็นหน้าแยก
-4 ✅ Tab Alignment Welcome + Tab ขนาดเท่ากัน
-5 🌈 Rainbow Mode 100% ทุก component เปลี่ยนสี
-6 🎨 BG สว่างขึ้น V: 0.08 → 0.15-0.28 (มองเห็นชัด)
-7 🔧 ThemeUpdaters System Component ลงทะเบียนตัวเอง
-
-🌈 Rainbow ที่ทำงาน 100%
-
-ทุก Component เปลี่ยนสีเมื่อเปิด Rainbow:
-
-Component เปลี่ยนสี
-🎚️ Toggle ✅ switch + knob
-📊 Slider ✅ track + fill
-📋 Dropdown ✅ BG
-📈 ProgressBar ✅ track
-⌨️ Input / TextArea ✅ BG
-🎨 ColorPicker ✅ hex BG
-🔘 Button ✅ BG
-📂 Section ✅ accent
-🃏 Card / Paragraph ✅ bar + BG
-📝 MultiDropdown ✅ BG
-🌳 TreeView ✅ icon
-🎁 Accordion ✅ header + icon
-
----
-
-2. การติดตั้ง
-
-🔹 โหลดจากเครื่อง (แนะนำ ✅)
 🔹 โหลดจาก GitHub
 
 ```lua
 local EclipseLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/wino444/EclipseLib/main/Library%20ui.lua"
-))()
+), true)()
 ```
 
 ---
 
-3. Quick Start
+2. Quick Start
 
 ```lua
 -- 1. โหลด Library
 local EclipseLib = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/wino444/EclipseLib/main/Library%20ui.lua"
-))()
+), true)()
 
 -- 2. สร้าง Window
 local Win = EclipseLib:CreateWindow({
@@ -117,7 +77,7 @@ Tab:AddButton({
 
 -- 5. Hotkey
 Win:AddGlobalHotkey({
-    Name = "Toggle UI",
+    Name = "ToggleUI",
     Default = Enum.KeyCode.RightControl,
     Callback = function() Win:Toggle() end,
 })
@@ -128,120 +88,110 @@ Win:SetAutosave(true, "my_session", 30)
 
 ---
 
-4. Global API
-
-🌐 EclipseLib Properties
-
-Property Type คำอธิบาย
-EclipseLib.Themes table ธีมทั้ง 7
-EclipseLib.Icons table Icon rbxassetid
+3. Global API
 
 🔧 EclipseLib Methods
 
-Method Args คำอธิบาย
-EclipseLib:CreateWindow(opts) table สร้างหน้าต่าง
-EclipseLib:Notify(opts) table Notify + Sound + Silent
-EclipseLib:Alert(opts) table Alert Dialog
-EclipseLib:Prompt(opts) table Prompt Dialog
-EclipseLib:Toast(opts) table Toast
-EclipseLib:Confirm(msg) string Confirm Dialog
-EclipseLib:Log(msg, level) string, string Log
-EclipseLib:ShowContextMenu(items, pos) table, Vector2 คลิกขวา
-EclipseLib:PlaySound(name) string เล่นเสียง
-EclipseLib:SetSounds(tbl) table ตั้งค่าเสียง
-EclipseLib:SetSoundEnabled(bool) boolean เปิด/ปิดเสียง
-EclipseLib:Unload() — ลบทุกอย่าง + คืนจำนวน window
-EclipseLib:IsUsingFallback() — เช็ค fallback status
+Method                        Args            คำอธิบาย
+EclipseLib:CreateWindow(opts) table           สร้างหน้าต่าง
+EclipseLib:Notify(opts)       table           Notify
+EclipseLib:Alert(opts)        table           Alert Dialog
+EclipseLib:Prompt(opts)       table           Prompt Dialog
+EclipseLib:Toast(opts)        table           Toast
+EclipseLib:Confirm(msg)       string          Confirm Dialog
+EclipseLib:Log(msg, level)    string, string  Log
+EclipseLib:ShowContextMenu    table, Vector2  คลิกขวา
+EclipseLib:PlaySound(name)    string          เล่นเสียง
+EclipseLib:SetSounds(tbl)     table           ตั้งค่าเสียง
+EclipseLib:SetSoundEnabled(b) boolean         เปิด/ปิดเสียง
+EclipseLib:Unload()           —               ลบทุกอย่าง
 
 ---
 
-5. Window System
+4. Window System
 
 EclipseLib:CreateWindow(opts)
 
-Parameter Type Default คำอธิบาย
-Name string "EclipseLib" ชื่อ UI
-LoadingTitle string "🌒 EclipseLib" หัวข้อ Intro
-LoadingSubtitle string "กำลังโหลด..." คำอธิบาย Intro
-ConfigurationSaving.FolderName string "EclipseLib" โฟลเดอร์ Config
-KeySystem boolean false ใช้ระบบ Key
-Key table {} List ของ Key
-KeyTitle string "🔑 ใส่ Key" หัวข้อ
-KeyDescription string "กรอก Key..." คำอธิบาย
-KeyLink string "" ลิงก์ขอ Key
+Parameter                       Type    Default
+Name                            string  "EclipseLib"
+LoadingTitle                    string  "🌒 EclipseLib"
+LoadingSubtitle                 string  "กำลังโหลด..."
+ConfigurationSaving.FolderName  string  "EclipseLib"
+KeySystem                       boolean false
+Key                             table   {}
+KeyTitle                        string  "🔑 ใส่ Key"
+KeyDescription                  string  "กรอก Key..."
+KeyLink                         string  ""
 
-🎯 TopBar — 4 ปุ่ม
+🎯 TopBar — 5 ปุ่ม
 
 ```
-┌────────────────────────────────────────┐
-│ 🌒 My Script          ⚙️  ☰  —  ✕     │
-└────────────────────────────────────────┘
-                        ①  ②  ③  ④
+┌──────────────────────────────────────────────┐
+│ 🌒 My Script         👤  ⚙️  ☰  —  ✕        │
+└──────────────────────────────────────────────┘
+                       ①   ②   ③   ④   ⑤
 ```
 
-# ปุ่ม ชื่อ หน้าที่
-① ⚙️ Settings เปิดหน้า Settings (toggle)
-② ☰ Toggle TabBar ซ่อน/แสดง TabBar (หมุน 90°)
-③ — Minimize ย่อ UI (เหลือแค่ TopBar)
-④ ✕ Close ซ่อน UI (เหลือ float 🌒)
+ปุ่ม    ชื่อ           หน้าที่
+
+①  👤     Profile       เปิดหน้า Profile (toggle)
+②  ⚙️     Settings      เปิดหน้า Settings (toggle)
+③  ☰     Toggle TabBar ซ่อน/แสดง TabBar
+④  —     Minimize      ย่อ UI
+⑤  ✕     Close         ซ่อน UI
 
 Window Methods
 
-Method คำอธิบาย
-Win:CreateTab(nameOrOpts, icon) สร้าง Tab
-Win:Show() เปิด UI (restore position)
-Win:Hide() ซ่อน UI (save position)
-Win:Toggle() สลับเปิด/ปิด
-Win:Destroy() ลบ UI (disconnect all)
-Win:Notify(opts) Shortcut
-Win:Alert(opts) Shortcut
-Win:Prompt(opts) Shortcut
-Win:Toast(opts) Shortcut
-Win:Confirm(msg) Shortcut
-Win:Log(msg, level) Shortcut
-Win:ShowContextMenu(items, pos) Shortcut
-Win:PlaySound(name) Shortcut
-Win:SetNotifPosition(side) "left" / "right"
-Win:ToggleTabBar() ซ่อน/แสดง TabBar
-Win:AddGlobalHotkey(opts) เพิ่ม Hotkey
-Win:SetAutosave(enabled, name, interval) Autosave
-Win:SetResizable(bool) resize handle 24x24
+Method                              คำอธิบาย
+Win:CreateTab(nameOrOpts, icon)     สร้าง Tab
+Win:Show()                          เปิด UI
+Win:Hide()                          ซ่อน UI
+Win:Toggle()                        สลับเปิด/ปิด
+Win:Destroy()                       ลบ UI
+Win:Notify(opts)                    Shortcut
+Win:Alert(opts)                     Shortcut
+Win:Prompt(opts)                    Shortcut
+Win:Toast(opts)                     Shortcut
+Win:Confirm(msg)                    Shortcut
+Win:Log(msg, level)                 Shortcut
+Win:ShowContextMenu(items, pos)     Shortcut
+Win:PlaySound(name)                 Shortcut
+Win:SetNotifPosition(side)          "left" / "right"
+Win:ToggleTabBar()                  ซ่อน/แสดง TabBar
+Win:AddGlobalHotkey(opts)           เพิ่ม Hotkey
+Win:SetAutosave(enabled, n, int)    Autosave
+Win:SetResizable(bool)              resize handle
 
 ---
 
-6. Tab System
+5. Tab System
 
-🏗️ โครงสร้างใหม่ (v6.5.2)
+🏗️ โครงสร้าง
 
 ```
 Body
-├── TabBarContainer (Frame 115px)
-│   └── TabBar (ScrollingFrame)
-│       ├── 🏠 Welcome (Locked — บนสุด)
+├── TabBarContainer
+│   └── TabBar
+│       ├── 🔍 Search Box
 │       ├── ──────── (Divider)
-│       ├── ⚔️ Combat
+│       ├── ⚔️ Main
 │       ├── 🎨 Visual
 │       └── 🎮 Player
 └── ContentArea
 ```
 
-🎯 จุดสำคัญ:
+🔍 Search Box
 
-· Welcome อยู่บนสุดของ TabBar เสมอ
-· Tab อื่นเรียงต่อกัน (LayoutOrder)
-· Settings ไม่ใช่ Tab — เป็นปุ่ม ⚙️ บน TopBar
+· พิมพ์ในกล่อง → filter tabs แบบ realtime
+· ลบข้อความ → tabs กลับมา
 
 Win:CreateTab(nameOrOpts, icon)
 
-แบบ String:
-
 ```lua
+-- แบบ String
 local Tab = Win:CreateTab("Main", "⚔️")
-```
 
-แบบ Table:
-
-```lua
+-- แบบ Table
 local Tab = Win:CreateTab({
     Name = "Main",
     Icon = "⚔️",
@@ -250,83 +200,66 @@ local Tab = Win:CreateTab({
 
 ---
 
-7. Built-in Pages
+6. Built-in Pages
 
-🏠 หน้า Welcome (Locked)
+👤 หน้า Profile
 
-อยู่บนสุดของ TabBar — ไม่สามารถย้าย/ลบได้
+เปิดจากปุ่ม 👤 บน TopBar
 
-แสดงข้อมูลผู้เล่น Real-time:
+แสดงข้อมูลผู้เล่น:
 
-Card Icon รายละเอียด Copy
-Profile 👤 Avatar + DisplayName + @Username + UserId ✅
-ชื่อแมพ 🗺️ MarketplaceService ✅
-อายุบัญชี ⏳ ปี/เดือน/วัน ❌
-Place ID 📍 game.PlaceId ✅
-Server ID 🖥️ game.JobId ✅
-เวลาที่เล่น ⏱️ Session timer ❌
-
-🔄 ใช้ Single Heartbeat — อัปเดตทุก Card พร้อมกัน
+Card         Icon   รายละเอียด
+Profile      👤    Avatar + DisplayName + Username + UserId
+ชื่อแมพ       🗺️   MarketplaceService
+อายุบัญชี      ⏳    ปี/เดือน/วัน
+Place ID     📍    game.PlaceId
+Server ID    🖥️   game.JobId
+เวลาที่เล่น    ⏱️   Session timer
 
 ⚙️ หน้า Settings
 
-เปิดจากปุ่ม ⚙️ บน TopBar (ไม่ใช่ Tab)
-
-กด ⚙️ อีกครั้ง → กลับ Welcome
+เปิดจากปุ่ม ⚙️ บน TopBar
 
 ประกอบด้วย:
 
 1. 🎨 Preset Themes — 7 ธีม + Rainbow
-2. 🌈 Rainbow Mode — toggle
+2. 🌈 Rainbow Mode
 3. 📏 ขนาด UI — เล็ก/กลาง/ใหญ่
-4. 🔔 ตำแหน่ง Notification — ซ้าย/ขวา
-5. 💾 บันทึก/โหลด Config — dropdown + Save/Load/Overwrite
+4. 🔔 ตำแหน่ง Notification
+5. 💾 บันทึก/โหลด Config
 6. ⚠️ Danger Zone — Reset/Destroy
 
 ---
 
-8. Components ทั้งหมด
+7. Components ทั้งหมด
 
-8.1 🏷️ AddLabel
+7.1 🏷️ AddLabel
 
 ```lua
 local L = Tab:AddLabel({ Text = "ข้อความ" })
 L:SetText("ใหม่")
 ```
 
-Returns: { SetText(t) }
-
----
-
-8.2 📂 AddSection
+7.2 📂 AddSection
 
 ```lua
 local sec = Tab:AddSection({ Name = "หัวข้อ" })
-sec:SetText("หัวข้อใหม่")
+sec:SetText("ใหม่")
 sec:Destroy()
-sec:GetFrame()
 ```
 
-Returns: { SetText, Destroy, GetFrame }
-
----
-
-8.3 🔘 AddButton
+7.3 🔘 AddButton
 
 ```lua
 Tab:AddButton({
     Name = "ชื่อปุ่ม",
     Description = "คำอธิบาย",
-    RealtimeValue = function() return os.time() end,  -- optional
+    RealtimeValue = function() return os.time() end,
     Callback = function() print("กด!") end,
 })
 ```
 
-💡 มี Glow effect ครึ่งบนของปุ่ม
-
----
-
-8.4 🎚️ AddToggle
+7.4 🎚️ AddToggle
 
 ```lua
 local T = Tab:AddToggle({
@@ -338,14 +271,10 @@ local T = Tab:AddToggle({
 })
 
 T:SetState(true)
-T:GetState()  -- → boolean
+T:GetState()
 ```
 
-🌈 Rainbow เปลี่ยนสี switch + knob
-
----
-
-8.5 📊 AddSlider
+7.5 📊 AddSlider
 
 ```lua
 local S = Tab:AddSlider({
@@ -356,14 +285,10 @@ local S = Tab:AddSlider({
 })
 
 S:GetValue()
-S:SetValue(75)  -- clamp อัตโนมัติ
+S:SetValue(75)
 ```
 
-🌈 Rainbow เปลี่ยนสี track + fill
-
----
-
-8.6 📋 AddDropdown
+7.6 📋 AddDropdown
 
 ```lua
 local D = Tab:AddDropdown({
@@ -372,55 +297,41 @@ local D = Tab:AddDropdown({
     Default = "Normal",
     ConfigKey = "mode",
     Callback = function(sel) print(sel) end,
-    RealtimeValue = function() return "test" end,  -- optional
 })
 
 D:GetValue()
 D:SetOptions({"A", "B", "C"})
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.7 ⌨️ AddInput
+7.7 ⌨️ AddInput
 
 ```lua
 local I = Tab:AddInput({
     Name = "ชื่อ",
     Placeholder = "พิมพ์...",
-    Callback = function(text)
-        -- fires เฉพาะตอนกด Enter
-        print(text)
-    end,
+    ConfigKey = "player_name",
+    Callback = function(text) print(text) end,
 })
 
 I:GetValue()
 I:SetValue("hello")
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.8 🎨 AddColorPicker
+7.8 🎨 AddColorPicker
 
 ```lua
 local C = Tab:AddColorPicker({
     Name = "สี",
     Default = Color3.fromRGB(120, 70, 230),
+    ConfigKey = "esp_color",
     Callback = function(c) print(c) end,
 })
 
-C:GetColor()  -- → Color3
+C:GetColor()
 C:SetColor(Color3.fromRGB(255, 0, 0))
 ```
 
-🌈 Rainbow เปลี่ยนสี hex BG
-
----
-
-8.9 📈 AddProgressBar
+7.9 📈 AddProgressBar
 
 ```lua
 local PB = Tab:AddProgressBar({
@@ -430,17 +341,11 @@ local PB = Tab:AddProgressBar({
 })
 
 PB:SetValue(75)
-PB:GetValue()  -- → 75
-PB:Reset()     -- กลับไปใช้ function
+PB:GetValue()
+PB:Reset()
 ```
 
-Returns: { SetValue, GetValue, Reset }
-
-🌈 Rainbow เปลี่ยนสี track
-
----
-
-8.10 📄 AddParagraph
+7.10 📄 AddParagraph
 
 ```lua
 local P = Tab:AddParagraph({
@@ -452,33 +357,23 @@ P:SetTitle("ใหม่")
 P:SetContent("ใหม่")
 ```
 
-🌈 Rainbow เปลี่ยนสี left bar + BG
-
----
-
-8.11 ⌨️ AddKeybind
+7.11 ⌨️ AddKeybind
 
 ```lua
 local KB = Tab:AddKeybind({
     Name = "Toggle UI",
-    Description = "กดเพื่อเปิด/ปิด",
     Default = Enum.KeyCode.RightShift,
+    ConfigKey = "toggle_key",
     Callback = function() Win:Toggle() end,
 })
 
-KB:GetKey()    -- → KeyCode
+KB:GetKey()
 KB:SetKey(k)
-KB:IsMobile()  -- → boolean
-KB:Trigger()   -- เรียก callback manual
+KB:IsMobile()
+KB:Trigger()
 ```
 
-Returns: { GetKey, SetKey, IsMobile, Trigger }
-
-📱 มือถือแสดงเป็นปุ่ม "▶ กด"
-
----
-
-8.12 🃏 AddCard
+7.12 🃏 AddCard
 
 ```lua
 local Card = Tab:AddCard({
@@ -491,34 +386,28 @@ Card:SetTitle("ใหม่")
 Card:SetContent("ใหม่")
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.13 📝 AddMultiDropdown
+7.13 📝 AddMultiDropdown
 
 ```lua
 local MD = Tab:AddMultiDropdown({
     Name = "ฟีเจอร์",
     Options = {"A", "B", "C", "D"},
     Default = {"A", "C"},
+    ConfigKey = "features",
     Callback = function(arr) print(arr) end,
 })
 
-MD:GetSelected()          -- → table
+MD:GetSelected()
 MD:SetSelected({"B", "D"})
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.14 🔢 AddNumberInput
+7.14 🔢 AddNumberInput
 
 ```lua
 local NI = Tab:AddNumberInput({
     Name = "จำนวน",
     Min = 0, Max = 1000, Step = 50, Default = 100,
+    ConfigKey = "money_amount",
     Callback = function(v) print(v) end,
 })
 
@@ -526,17 +415,14 @@ NI:GetValue()
 NI:SetValue(500)
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.15 📝 AddTextArea
+7.15 📝 AddTextArea
 
 ```lua
 local TA = Tab:AddTextArea({
     Name = "บันทึก",
     Placeholder = "พิมพ์หลายบรรทัด...",
     Height = 100,
+    ConfigKey = "notes",
     Callback = function(text) print(text) end,
 })
 
@@ -544,11 +430,7 @@ TA:GetValue()
 TA:SetValue("Hello\nWorld")
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.16 ➖ AddDivider
+7.16 ➖ AddDivider
 
 ```lua
 Tab:AddDivider({ Text = "แบ่งส่วน" })
@@ -556,9 +438,7 @@ Tab:AddDivider({})
 Tab:AddDivider({ Text = "หนา", Thickness = 3 })
 ```
 
----
-
-8.17 🖼️ AddImage
+7.17 🖼️ AddImage
 
 ```lua
 local IMG = Tab:AddImage({
@@ -571,26 +451,18 @@ local IMG = Tab:AddImage({
 IMG:SetImage("rbxassetid://...")
 ```
 
-🌈 Rainbow เปลี่ยนสี BG
-
----
-
-8.18 🔍 AddSearch (Component)
+7.18 🔍 AddSearch (Component)
 
 ```lua
 Tab:AddSearch({
     Name = "ค้นหา",
     Placeholder = "พิมพ์...",
-    OnSearch = function(q) print("ค้นหา:", q) end,  -- ทุก 0.15s
-    Callback = function(text) print("ยืนยัน:", text) end,  -- Enter
+    OnSearch = function(q) print("ค้นหา:", q) end,
+    Callback = function(text) print("ยืนยัน:", text) end,
 })
 ```
 
-⚠️ ไม่เกี่ยวกับ Search Tab (ที่ถูกลบไปแล้ว)
-
----
-
-8.19 🌳 AddTreeView
+7.19 🌳 AddTreeView
 
 ```lua
 local Tree = Tab:AddTreeView({
@@ -610,23 +482,13 @@ local Tree = Tab:AddTreeView({
 Tree:Refresh(newData)
 ```
 
-🌈 Rainbow เปลี่ยนสี icon
+7.20 🎁 AddAccordion
+
+ดู Section 8
 
 ---
 
-8.20 🎁 AddAccordion
-
-ดู Section 9
-
----
-
-9. Accordion
-
-Tab:AddAccordion(o)
-
-Param Type Default
-Name string "Accordion"
-Default boolean false
+8. Accordion
 
 ```lua
 local Acc = Tab:AddAccordion({
@@ -634,7 +496,7 @@ local Acc = Tab:AddAccordion({
     Default = false,
 })
 
-Acc:AddToggle({ Name = "Debug", Callback = function(v) print(v) end })
+Acc:AddToggle({ Name = "Debug", ConfigKey = "debug" })
 Acc:AddSlider({ Name = "Speed", Min = 1, Max = 100 })
 Acc:AddButton({ Name = "Reset", Callback = function() end })
 ```
@@ -650,86 +512,47 @@ Component ที่ใส่ได้
 
 ---
 
-10. Themes
+9. Themes
 
 7 ธีมสำเร็จรูป
 
-ชื่อ ไอคอน โทนสี
-Eclipse 🌒 ม่วงเข้ม (default)
-Ocean 🌊 ฟ้าเข้ม
-Forest 🌲 เขียว
-Inferno 🔥 ส้ม-แดง
-Sakura 🌸 ชมพู
-Midnight 🖤 เทาเข้ม
-Rainbow 🌈 หลายสี
+ชื่อ        ไอคอน
+Eclipse     🌒
+Ocean       🌊
+Forest      🌲
+Inferno     🔥
+Sakura      🌸
+Midnight    🖤
+Rainbow     🌈
 
-Theme Fields (17)
-
-```
-Background   Secondary   Accent       AccentHover
-Text         SubText     Border       TabActive
-TabInactive  Toggle_ON   Toggle_OFF   Slider_Fill
-Slider_BG    Notif_BG    Notif_Border Input_BG
-Dropdown_BG
-```
-
-🎯 ThemeCache
-
-เปลี่ยนธีมใช้ ThemeCache ที่เก็บ references → เร็ว ~10x
+เปิดที่ ⚙️ Settings → Preset Themes
 
 ---
 
-11. Rainbow Mode 🌈
+10. Rainbow Mode 🌈
 
 วิธีเปิด
 
 1. กดปุ่ม ⚙️ บน TopBar
-2. 🌈 Rainbow Mode → toggle Rainbow RGB
+2. 🌈 Rainbow Mode → toggle
 
 สิ่งที่เปลี่ยน
 
-Element เปลี่ยนสี
-🎨 Accent ✅ หมุนตาม hue
-🖼️ Background ✅ สว่างขึ้น (V=0.15)
-🎁 Secondary ✅ V=0.22
-🔔 Border ✅ V=0.55
-📝 Input BG ✅ V=0.25
-📊 Slider BG ✅ V=0.28
-📋 Dropdown BG ✅ V=0.22
-🔘 Tab buttons ✅
-✨ UIStroke ✅ Rainbow gradient
+· 🎨 Accent
+· 🖼️ Background
+· 🎁 Secondary
+· 🔔 Border
+· 📝 Input BG
+· 📊 Slider BG
+· 📋 Dropdown BG
+· 🔘 Tab buttons
+· ✨ UIStroke
 
-🆕 ThemeUpdaters System
-
-ทุก component ลงทะเบียน updater ของตัวเอง:
-
-```lua
--- ตัวอย่างใน AddToggle
-RegisterUpdater(function()
-    sw.BackgroundColor3 = state and Theme.Toggle_ON or Theme.Toggle_OFF
-end)
-```
-
-ผลลัพธ์: เมื่อ Rainbow เปิด → เรียก RunAllUpdaters() ทุกเฟรม → ทุก component เปลี่ยนสีทันที
-
-RGB Rotation
-
-· 🔄 Hue หมุนด้วย os.clock() * 0.15
-· 🎨 UIStroke มี UIGradient หมุน 60°/s
-· 🌈 Background เปลี่ยนตาม hue เดียวกัน
-
-🎯 ข้อดี v6.5.2
-
-· ✅ ทำงาน 100% — ทุก component
-· ✅ BG สว่าง — มองเห็นชัด
-· ✅ Per-window — 2 windows ไม่พังกัน
-· ✅ ปิดแล้วคืนค่า — snapshot ก่อนเปิด
+ปิด → กลับมาธีมเดิมอัตโนมัติ
 
 ---
 
-12. Notification
-
-EclipseLib:Notify(opts)
+11. Notification
 
 ```lua
 EclipseLib:Notify({
@@ -737,27 +560,27 @@ EclipseLib:Notify({
     Content = "ข้อความ",
     Duration = 3,
     Type = "info",     -- info / error
-    Silent = false,    -- true = ปิดเสียง
+    Silent = false,
 })
 ```
 
-Param Type Default คำอธิบาย
-Title string "EclipseLib" หัวข้อ
-Content string "" เนื้อหา
-Duration number 3 วินาที
-Type string "info" info / error
-Silent boolean false ปิดเสียง
+Param     Type    Default
+Title     string  "EclipseLib"
+Content   string  ""
+Duration  number  3
+Type      string  "info"
+Silent    boolean false
 
 🔔 เปลี่ยนตำแหน่ง
 
 ```lua
-Win:SetNotifPosition("left")   -- ซ้ายบน
-Win:SetNotifPosition("right")  -- ขวาบน (default)
+Win:SetNotifPosition("left")
+Win:SetNotifPosition("right")
 ```
 
 ---
 
-13. Dialog System
+12. Dialog System
 
 🔔 Alert
 
@@ -768,7 +591,7 @@ local result = EclipseLib:Alert({
     Type = "info",  -- info / warning / error / success
     Buttons = {"Cancel", "OK"},
 })
-print(result)  -- 1 = Cancel, 2 = OK
+-- 1 = Cancel, 2 = OK
 ```
 
 💬 Prompt
@@ -779,7 +602,7 @@ local text = EclipseLib:Prompt({
     Placeholder = "ชื่อ...",
     Default = "",
 })
--- text = string หรือ nil
+-- string หรือ nil
 ```
 
 🎉 Toast
@@ -802,7 +625,7 @@ end
 
 ---
 
-14. Context Menu
+13. Context Menu
 
 ```lua
 EclipseLib:ShowContextMenu({
@@ -812,68 +635,75 @@ EclipseLib:ShowContextMenu({
 }, Vector2.new(200, 200))
 ```
 
-💡 คลิกข้างนอก = ปิดเมนู
-
 ---
 
-15. Sound System
-
-Default Sounds
-
-```lua
-Sounds = {
-    Enabled = true,
-    Notify  = "rbxasset://sounds/electronicpingshort.wav",
-    Click   = "rbxasset://sounds/electronicpingshort.wav",
-    Toggle  = "rbxasset://sounds/switch.wav",
-    Error   = "rbxasset://sounds/uuhhh.mp3",
-}
-```
-
-การใช้
+14. Sound System
 
 ```lua
 EclipseLib:SetSounds({ Click = "rbxasset://sounds/new.wav" })
 EclipseLib:SetSoundEnabled(true)
 EclipseLib:PlaySound("Click")
-EclipseLib:PlaySound("InvalidSound")  -- ไม่ crash
+EclipseLib:PlaySound("Toggle")
 ```
+
+Sounds ที่มี
+· Notify
+· Click
+· Toggle
+· Error
 
 ---
 
-16. Config System
+15. Config System
 
 หลักการ
 
 · ใส่ ConfigKey ใน Component → save อัตโนมัติ
-· ไฟล์เก็บใน {FolderName}/*.eclipse
-· เปลี่ยนค่า → mark dirty → Autosave
+· ไฟล์เก็บใน {FolderName}/ เท่านั้น
+· เปลี่ยนค่า → mark dirty → autosave (ถ้าเปิด)
 
-ตัวอย่าง
+Component ที่ ConfigKey รองรับ
 
-```lua
-Tab:AddToggle({
-    Name = "Speed Hack",
-    ConfigKey = "speed_hack",
-    Callback = function(state) end,
-})
-```
+· ✅ Toggle
+· ✅ Slider
+· ✅ Dropdown
+· ✅ Input
+· ✅ NumberInput
+· ✅ TextArea
+· ✅ MultiDropdown
+· ✅ ColorPicker
+· ✅ Keybind
 
-ผ่าน UI
+UI State ที่เก็บอัตโนมัติ
+
+· ตำแหน่ง UI
+· ขนาด UI
+· Tab ที่เปิด
+· TabBar แสดง/ซ่อน
+· Theme
+· Rainbow
+· ตำแหน่ง Notification
+· Hotkeys ทั้งหมด
+
+📖 ผ่าน UI
 
 1. กด ⚙️ → ไปที่ 💾 บันทึก/โหลด Config
 2. ใส่ชื่อไฟล์ → 💾 Save ใหม่
 3. เลือกไฟล์ → 📂 Load หรือ ✏️ ทับ
 
-Window Position Save
+🎯 ตัวอย่าง
 
-save/restore อัตโนมัติเมื่อ Hide() / Show()
+```lua
+Tab:AddToggle({
+    Name = "Speed Hack",
+    ConfigKey = "speed_hack_v1",
+    Callback = function(state) end,
+})
+```
 
 ---
 
-17. Key System
-
-เปิดใช้
+16. Key System
 
 ```lua
 local Win = EclipseLib:CreateWindow({
@@ -886,12 +716,7 @@ local Win = EclipseLib:CreateWindow({
 })
 ```
 
-Hash Algorithm
-
-เก็บ Base64 + rolling hash (ไม่ใช่ plain text)
-
 ฟีเจอร์
-
 · ✅ Save Key
 · ✅ Auto-check
 · ✅ Invalid key → auto delete
@@ -900,7 +725,7 @@ Hash Algorithm
 
 ---
 
-18. Hotkeys
+17. Hotkeys
 
 ```lua
 local hk = Win:AddGlobalHotkey({
@@ -914,82 +739,30 @@ hk:SetKey(k)
 ```
 
 🎯 ปุ่มที่แนะนำ
-
 ✅ ปลอดภัย: RightControl, RightShift, F1–F12, Insert, Home
 ❌ ระวัง: Delete, Escape, Tab, Backspace
 
 ---
 
-19. Unload 🧹
-
-EclipseLib:Unload()
-
-ทำความสะอาดทั้งหมด:
-
-· ✅ Destroy ทุก window
-· ✅ Disconnect ทุก connection
-· ✅ ลบ Notif Holder
-· ✅ Clear Rainbow animators
-· ✅ Destroy Sound cache
-· ✅ Reset Config system
+18. Unload
 
 ```lua
 local count = EclipseLib:Unload()
 print("Unloaded", count, "windows")
 ```
 
-Fallback Check
-
-```lua
-if EclipseLib:IsUsingFallback() then
-    warn("⚠️ ใช้ PlayerGui แทน CoreGui")
-end
-```
-
----
-
-20. UI Factory 🏭
-
-Internal Helpers
-
-Helper ใช้ทำอะไร
-UI.Label(parent, opts) สร้าง TextLabel
-UI.Frame(parent, opts) สร้าง Frame
-UI.Button(parent, opts) สร้าง TextButton
-UI.TextBox(parent, opts) สร้าง TextBox + BG
-UI.Scroll(parent, opts) สร้าง ScrollingFrame
-UI.Image(parent, opts) สร้าง ImageLabel
-UI.Layout(parent, opts) UIListLayout
-UI.Padding(parent, opts) UIPadding
-UI.Grid(parent, opts) UIGridLayout
-
-ตัวอย่าง
-
-```lua
--- ❌ เดิม — 10+ บรรทัด
-local nL = Instance.new("TextLabel")
-nL.BackgroundTransparency = 1
--- ...
-
--- ✅ ใหม่ — 1 บรรทัด
-local nL = UI.Label(card, { Text = "Hello" })
-```
+ทำความสะอาดทั้งหมด
+· ✅ Destroy ทุก window
+· ✅ Disconnect ทุก connection
+· ✅ ลบ Notification
+· ✅ Clear Rainbow
+· ✅ Destroy Sound
 
 ---
 
-21. Best Practices
+19. Best Practices
 
 ⏱️ 1. ใช้ RealtimeValue
-
-❌ ห้าม:
-
-```lua
-RunService.Heartbeat:Connect(function()
-    label:SetText(tostring(os.clock()))
-end)
-```
-
-✅ ควร:
 
 ```lua
 Tab:AddButton({
@@ -1025,135 +798,30 @@ ConfigKey = "my_script_speed_v1"  -- ✅ unique + version
 ConfigKey = "speed"                -- ❌ ซ้ำง่าย
 ```
 
-🌈 5. Rainbow กับ Component ใหม่
-
-ถ้าสร้าง component หลังเปิด Rainbow → สีจะยังเปลี่ยนได้ ✅
-เพราะ RegisterUpdater อยู่ใน component constructor
-
 ---
 
-22. Troubleshooting
+20. Troubleshooting
 
 ❌ Tab กดไม่ติด
-
-สาเหตุ: ❌ ใน v6.5 เก่า — Welcome แยก Frame
-แก้: ✅ v6.5.2 — Welcome อยู่ใน TabBar → แก้แล้ว
-
----
+→ ตรวจสอบว่าสร้าง Tab สำเร็จ
 
 ❌ Rainbow ไม่เปลี่ยนสี
+→ ลองปิด/เปิดใหม่
 
-สาเหตุ: ❌ ใน v6.5 เก่า — Toggle/Slider ใช้ local
-แก้: ✅ v6.5.2 — RegisterUpdater ทุก component
-
----
-
-❌ Rainbow BG ดำเกินไป
-
-สาเหตุ: ❌ ใน v6.5 เก่า — V=0.08
-แก้: ✅ v6.5.2 — V=0.15-0.28 มองเห็นชัด
-
----
+❌ Load แล้วค่าหาย
+→ ตรวจสอบว่า Component มี ConfigKey
 
 ❌ Autosave ไม่ทำงาน
-
-แก้:
-
-```lua
-Win:SetAutosave(true, "my_session", 30)
-```
-
-· ลองเปลี่ยน component → 30s จะ save
-
----
+→ ตรวจสอบ Win:SetAutosave(true, "name", 30)
 
 ❌ Key ผิดแม้ใส่ถูก
+→ ลบ eclipse_key.dat แล้วใส่ใหม่
 
-สาเหตุ: v6.3 save plain text, v6.5 ใช้ hash
-แก้:
+---
 
-```lua
-pcall(function() delfile("MyScript/eclipse_key.dat") end)
+📘 EclipseLib v6.5.2 — เอกสารประกอบ
+🏷️ สร้างโดย wino444
+📅 อัปเดต: 2026
+🌟 Happy Scripting!
+
 ```
-
----
-
-⚠️ Warning "ใช้ PlayerGui แทน"
-
-สาเหตุ: Executor ไม่มี gethui()
-แก้: ใช้ Executor ที่รองรับ (Synapse, Script-Ware, Krnl)
-
----
-
-23. Changelog
-
-🌈 v6.5.2 — Rainbow Fix (Current)
-
-Rainbow Fixes:
-
-· ✅ ThemeUpdaters System — ทุก component register
-· ✅ BG สว่างขึ้น — V: 0.08 → 0.15-0.28
-· ✅ Toggle เปลี่ยนสี — switch + knob
-· ✅ Slider เปลี่ยนสี — track + fill
-· ✅ ProgressBar เปลี่ยนสี — track
-· ✅ Dropdown เปลี่ยนสี — BG
-· ✅ Input/TextArea เปลี่ยนสี — BG
-· ✅ ColorPicker เปลี่ยนสี — hex BG
-
-UI Fixes:
-
-· ✅ Welcome Tab Locked — อยู่บนสุดของ TabBar
-· ✅ Tab Alignment — ขนาดเท่ากัน
-· ✅ Settings ⚙️ บน TopBar — ไม่ใช่ Tab
-· ✅ ลบ Search Tab — ไม่มี bug
-
-🚀 v6.5 — Optimized Edition
-
-· ✅ UI Factory (9 helpers)
-· ✅ Search in TabBar (ลบใน v6.5.2)
-· ✅ โค้ดสั้นลง ~53%
-
-🟠 v6.4 — Full Fixes
-
-· Autosave, os.clock(), SafeConnect, ThemeCache
-· Rainbow per-window, ProgressBar SetValue
-· Key Hash, gethui, Unload, Position Save
-
-🟡 v6.3 — Ultimate
-
-· Notify Position, Rainbow, Danger Zone
-· Dynamic TabBar, Premium ColorPicker
-
-📊 Score Comparison
-
-หมวด v6.3 v6.4 v6.5 v6.5.2
-🐛 Bugs 6/10 9.5/10 9.5/10 10/10 🏆
-⚡ Performance 6/10 9/10 9.5/10 9.5/10
-🎨 UX 7/10 9/10 9.5/10 10/10
-🌈 Rainbow 6/10 8/10 7/10 10/10 🏆
-🧹 Quality 7/10 9/10 10/10 10/10
-รวม 6.5/10 8.8/10 9.2/10 9.9/10 🌟
-
----
-
-📖 สรุป
-
-EclipseLib v6.5.2 Rainbow Fix Edition:
-
-· 🌈 Rainbow 100% — ทุก component เปลี่ยนสี
-· 🏠 Welcome Locked — อยู่บนสุดเสมอ
-· ⚙️ Settings บน TopBar — ไม่ใช่ Tab
-· 🎯 Tab Alignment — ถูกต้อง
-· 🚀 เร็ว — ThemeCache + Single Heartbeat
-· 🔒 ปลอดภัย — Hash + gethui
-· 🧹 Cleanup — Unload + SafeConnect
-
----
-
-📘 EclipseLib v6.5.2 Rainbow Fix Edition — เอกสารฉบับสมบูรณ์
-🏷️ สร้างโดย wino444 | เอกสารเขียนโดย AI Assistant
-📅 อัปเดต: 2026 | 🎯 ครอบคลุม 100% API
-
-🌟 Happy Scripting! 🚀🔥
-
-สรุป สร้างใช้เอง 55+ นี้สินะ ที่ รู้สึกว่า เป็นของตัวเอง
