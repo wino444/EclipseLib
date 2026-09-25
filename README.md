@@ -1,38 +1,38 @@
 📘 EclipseLib v6.5.2 — เอกสารประกอบ
 
 UI Library สำหรับ Roblox | สร้างโดย wino444
-👤 Profile | 🔍 Search | ⚙️ Settings | 🌈 Rainbow
+👤 Profile | 🔍 Search | ⚙️ Settings | 🌈 Rainbow | 🔐 Save Config
 
----
-
+═══════════════════════════════════════════════════════════
 📑 สารบัญ
+═══════════════════════════════════════════════════════════
 
-1  📦 การติดตั้ง
-2  🚀 Quick Start
-3  🌐 Global API
-4  🪟 Window System
-5  📑 Tab System
-6  👤 Built-in Pages
-7  🧩 Components ทั้งหมด
-8  🎁 Accordion
-9  🎨 Themes
-10 🌈 Rainbow Mode
-11 🔔 Notification
-12 💬 Dialog System
-13 🖱️ Context Menu
-14 🔊 Sound System
-15 💾 Config System
-16 🔑 Key System
-17 ⌨️ Hotkeys
-18 🧹 Unload
-19 🔧 Best Practices
-20 🩺 Troubleshooting
+1   📦 การติดตั้ง
+2   🚀 Quick Start
+3   🌐 Global API
+4   🪟 Window System
+5   📑 Tab System
+6   👤 Built-in Pages
+7   🧩 Components ทั้งหมด
+8   🎁 Accordion
+9   🎨 Themes
+10  🌈 Rainbow Mode
+11  🔔 Notification
+12  💬 Dialog System
+13  🖱️ Context Menu
+14  🔊 Sound System
+15  💾 Config System
+16  🔑 Key System
+17  ⌨️ Hotkeys
+18  🧹 Unload
+19  ⏱️ Realtime Display Guide
+20  📝 Quick Reference
+21  🔧 Best Practices
+22  🩺 Troubleshooting
 
----
-
-1. การติดตั้ง
-
-🔹 โหลดจาก GitHub
+═══════════════════════════════════════════════════════════
+1. 📦 การติดตั้ง
+═══════════════════════════════════════════════════════════
 
 ```lua
 local EclipseLib = loadstring(game:HttpGet(
@@ -40,9 +40,10 @@ local EclipseLib = loadstring(game:HttpGet(
 ), true)()
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-2. Quick Start
+2. 🚀 Quick Start
+   ═══════════════════════════════════════════════════════════
 
 ```lua
 -- 1. โหลด Library
@@ -75,6 +76,12 @@ Tab:AddButton({
     end,
 })
 
+Tab:AddToggle({
+    Name = "God Mode",
+    ConfigKey = "god_mode",
+    Callback = function(state) print(state) end,
+})
+
 -- 5. Hotkey
 Win:AddGlobalHotkey({
     Name = "ToggleUI",
@@ -86,42 +93,42 @@ Win:AddGlobalHotkey({
 Win:SetAutosave(true, "my_session", 30)
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-3. Global API
+3. 🌐 Global API
+   ═══════════════════════════════════════════════════════════
 
-🔧 EclipseLib Methods
+Method                          Args               คำอธิบาย
+EclipseLib:CreateWindow(opts)   table              สร้างหน้าต่าง
+EclipseLib:Notify(opts)         table              Notify
+EclipseLib:Alert(opts)          table              Alert Dialog
+EclipseLib:Prompt(opts)         table              Prompt Dialog
+EclipseLib:Toast(opts)          table              Toast
+EclipseLib:Confirm(msg)         string             Confirm Dialog
+EclipseLib:Log(msg, level)      string, string     Log
+EclipseLib:ShowContextMenu(i,p) table, Vector2     คลิกขวา
+EclipseLib:PlaySound(name)      string             เล่นเสียง
+EclipseLib:SetSounds(tbl)       table              ตั้งค่าเสียง
+EclipseLib:SetSoundEnabled(b)   boolean            เปิด/ปิดเสียง
+EclipseLib:Unload()             —                  ลบทุกอย่าง
 
-Method                        Args            คำอธิบาย
-EclipseLib:CreateWindow(opts) table           สร้างหน้าต่าง
-EclipseLib:Notify(opts)       table           Notify
-EclipseLib:Alert(opts)        table           Alert Dialog
-EclipseLib:Prompt(opts)       table           Prompt Dialog
-EclipseLib:Toast(opts)        table           Toast
-EclipseLib:Confirm(msg)       string          Confirm Dialog
-EclipseLib:Log(msg, level)    string, string  Log
-EclipseLib:ShowContextMenu    table, Vector2  คลิกขวา
-EclipseLib:PlaySound(name)    string          เล่นเสียง
-EclipseLib:SetSounds(tbl)     table           ตั้งค่าเสียง
-EclipseLib:SetSoundEnabled(b) boolean         เปิด/ปิดเสียง
-EclipseLib:Unload()           —               ลบทุกอย่าง
+═══════════════════════════════════════════════════════════
 
----
-
-4. Window System
+4. 🪟 Window System
+   ═══════════════════════════════════════════════════════════
 
 EclipseLib:CreateWindow(opts)
 
-Parameter                       Type    Default
-Name                            string  "EclipseLib"
-LoadingTitle                    string  "🌒 EclipseLib"
-LoadingSubtitle                 string  "กำลังโหลด..."
-ConfigurationSaving.FolderName  string  "EclipseLib"
-KeySystem                       boolean false
-Key                             table   {}
-KeyTitle                        string  "🔑 ใส่ Key"
-KeyDescription                  string  "กรอก Key..."
-KeyLink                         string  ""
+Parameter                       Type    Default          คำอธิบาย
+Name                            string  "EclipseLib"     ชื่อ UI
+LoadingTitle                    string  "🌒 EclipseLib"  หัวข้อ Intro
+LoadingSubtitle                 string  "กำลังโหลด..."    คำอธิบาย Intro
+ConfigurationSaving.FolderName  string  "EclipseLib"     โฟลเดอร์ Config
+KeySystem                       boolean false            ใช้ระบบ Key
+Key                             table   {}               List ของ Key
+KeyTitle                        string  "🔑 ใส่ Key"     หัวข้อ
+KeyDescription                  string  "กรอก Key..."    คำอธิบาย
+KeyLink                         string  ""               ลิงก์ขอ Key
 
 🎯 TopBar — 5 ปุ่ม
 
@@ -134,11 +141,16 @@ KeyLink                         string  ""
 
 ปุ่ม    ชื่อ           หน้าที่
 
-①  👤     Profile       เปิดหน้า Profile (toggle)
-②  ⚙️     Settings      เปิดหน้า Settings (toggle)
+①  👤     Profile       เปิดหน้า Profile
+②  ⚙️     Settings      เปิดหน้า Settings
 ③  ☰     Toggle TabBar ซ่อน/แสดง TabBar
 ④  —     Minimize      ย่อ UI
 ⑤  ✕     Close         ซ่อน UI
+
+🎯 Profile / Settings — Toggle Behavior
+· กดครั้งแรก → เปิดหน้านั้น
+· กดครั้งที่ 2 → กลับ tab ล่าสุด
+· ถ้าไม่มี tab ล่าสุด → ไป Profile
 
 Window Methods
 
@@ -162,9 +174,10 @@ Win:AddGlobalHotkey(opts)           เพิ่ม Hotkey
 Win:SetAutosave(enabled, n, int)    Autosave
 Win:SetResizable(bool)              resize handle
 
----
+═══════════════════════════════════════════════════════════
 
-5. Tab System
+5. 📑 Tab System
+   ═══════════════════════════════════════════════════════════
 
 🏗️ โครงสร้าง
 
@@ -180,10 +193,11 @@ Body
 └── ContentArea
 ```
 
-🔍 Search Box
-
-· พิมพ์ในกล่อง → filter tabs แบบ realtime
+🎯 จุดสำคัญ
+· 🔍 Search Box อยู่บนสุดของ TabBar
+· พิมพ์ในกล่อง → filter tabs (ซ่อน tabs ที่ไม่ตรง)
 · ลบข้อความ → tabs กลับมา
+· Profile / Settings อยู่บน TopBar — ไม่อยู่ใน TabBar
 
 Win:CreateTab(nameOrOpts, icon)
 
@@ -198,11 +212,12 @@ local Tab = Win:CreateTab({
 })
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-6. Built-in Pages
+6. 👤 Built-in Pages
+   ═══════════════════════════════════════════════════════════
 
-👤 หน้า Profile
+👤 หน้า Profile (บน TopBar)
 
 เปิดจากปุ่ม 👤 บน TopBar
 
@@ -216,9 +231,11 @@ Place ID     📍    game.PlaceId
 Server ID    🖥️   game.JobId
 เวลาที่เล่น    ⏱️   Session timer
 
-⚙️ หน้า Settings
+⚙️ หน้า Settings (บน TopBar)
 
 เปิดจากปุ่ม ⚙️ บน TopBar
+
+กด ⚙️ อีกครั้ง → กลับ tab ล่าสุด
 
 ประกอบด้วย:
 
@@ -229,9 +246,10 @@ Server ID    🖥️   game.JobId
 5. 💾 บันทึก/โหลด Config
 6. ⚠️ Danger Zone — Reset/Destroy
 
----
+═══════════════════════════════════════════════════════════
 
-7. Components ทั้งหมด
+7. 🧩 Components ทั้งหมด
+   ═══════════════════════════════════════════════════════════
 
 7.1 🏷️ AddLabel
 
@@ -239,6 +257,8 @@ Server ID    🖥️   game.JobId
 local L = Tab:AddLabel({ Text = "ข้อความ" })
 L:SetText("ใหม่")
 ```
+
+───────────────────────────────────────────────────────────
 
 7.2 📂 AddSection
 
@@ -248,18 +268,22 @@ sec:SetText("ใหม่")
 sec:Destroy()
 ```
 
+───────────────────────────────────────────────────────────
+
 7.3 🔘 AddButton
 
 ```lua
 Tab:AddButton({
     Name = "ชื่อปุ่ม",
     Description = "คำอธิบาย",
-    RealtimeValue = function() return os.time() end,
+    RealtimeValue = function() return os.time() end,  -- optional
     Callback = function() print("กด!") end,
 })
 ```
 
-7.4 🎚️ AddToggle
+───────────────────────────────────────────────────────────
+
+7.4 🎚️ AddToggle ⭐ ConfigKey
 
 ```lua
 local T = Tab:AddToggle({
@@ -274,7 +298,9 @@ T:SetState(true)
 T:GetState()
 ```
 
-7.5 📊 AddSlider
+───────────────────────────────────────────────────────────
+
+7.5 📊 AddSlider ⭐ ConfigKey
 
 ```lua
 local S = Tab:AddSlider({
@@ -288,7 +314,9 @@ S:GetValue()
 S:SetValue(75)
 ```
 
-7.6 📋 AddDropdown
+───────────────────────────────────────────────────────────
+
+7.6 📋 AddDropdown ⭐ ConfigKey
 
 ```lua
 local D = Tab:AddDropdown({
@@ -303,7 +331,9 @@ D:GetValue()
 D:SetOptions({"A", "B", "C"})
 ```
 
-7.7 ⌨️ AddInput
+───────────────────────────────────────────────────────────
+
+7.7 ⌨️ AddInput ⭐ ConfigKey
 
 ```lua
 local I = Tab:AddInput({
@@ -317,7 +347,9 @@ I:GetValue()
 I:SetValue("hello")
 ```
 
-7.8 🎨 AddColorPicker
+───────────────────────────────────────────────────────────
+
+7.8 🎨 AddColorPicker ⭐ ConfigKey
 
 ```lua
 local C = Tab:AddColorPicker({
@@ -330,6 +362,8 @@ local C = Tab:AddColorPicker({
 C:GetColor()
 C:SetColor(Color3.fromRGB(255, 0, 0))
 ```
+
+───────────────────────────────────────────────────────────
 
 7.9 📈 AddProgressBar
 
@@ -345,6 +379,8 @@ PB:GetValue()
 PB:Reset()
 ```
 
+───────────────────────────────────────────────────────────
+
 7.10 📄 AddParagraph
 
 ```lua
@@ -357,7 +393,9 @@ P:SetTitle("ใหม่")
 P:SetContent("ใหม่")
 ```
 
-7.11 ⌨️ AddKeybind
+───────────────────────────────────────────────────────────
+
+7.11 ⌨️ AddKeybind ⭐ ConfigKey
 
 ```lua
 local KB = Tab:AddKeybind({
@@ -373,6 +411,8 @@ KB:IsMobile()
 KB:Trigger()
 ```
 
+───────────────────────────────────────────────────────────
+
 7.12 🃏 AddCard
 
 ```lua
@@ -386,7 +426,9 @@ Card:SetTitle("ใหม่")
 Card:SetContent("ใหม่")
 ```
 
-7.13 📝 AddMultiDropdown
+───────────────────────────────────────────────────────────
+
+7.13 📝 AddMultiDropdown ⭐ ConfigKey
 
 ```lua
 local MD = Tab:AddMultiDropdown({
@@ -401,7 +443,9 @@ MD:GetSelected()
 MD:SetSelected({"B", "D"})
 ```
 
-7.14 🔢 AddNumberInput
+───────────────────────────────────────────────────────────
+
+7.14 🔢 AddNumberInput ⭐ ConfigKey
 
 ```lua
 local NI = Tab:AddNumberInput({
@@ -415,7 +459,9 @@ NI:GetValue()
 NI:SetValue(500)
 ```
 
-7.15 📝 AddTextArea
+───────────────────────────────────────────────────────────
+
+7.15 📝 AddTextArea ⭐ ConfigKey
 
 ```lua
 local TA = Tab:AddTextArea({
@@ -430,6 +476,8 @@ TA:GetValue()
 TA:SetValue("Hello\nWorld")
 ```
 
+───────────────────────────────────────────────────────────
+
 7.16 ➖ AddDivider
 
 ```lua
@@ -437,6 +485,8 @@ Tab:AddDivider({ Text = "แบ่งส่วน" })
 Tab:AddDivider({})
 Tab:AddDivider({ Text = "หนา", Thickness = 3 })
 ```
+
+───────────────────────────────────────────────────────────
 
 7.17 🖼️ AddImage
 
@@ -451,6 +501,8 @@ local IMG = Tab:AddImage({
 IMG:SetImage("rbxassetid://...")
 ```
 
+───────────────────────────────────────────────────────────
+
 7.18 🔍 AddSearch (Component)
 
 ```lua
@@ -461,6 +513,10 @@ Tab:AddSearch({
     Callback = function(text) print("ยืนยัน:", text) end,
 })
 ```
+
+⚠️ ไม่เกี่ยวกับ Search Box (บน TabBar)
+
+───────────────────────────────────────────────────────────
 
 7.19 🌳 AddTreeView
 
@@ -482,13 +538,22 @@ local Tree = Tab:AddTreeView({
 Tree:Refresh(newData)
 ```
 
+───────────────────────────────────────────────────────────
+
 7.20 🎁 AddAccordion
 
 ดู Section 8
 
----
+═══════════════════════════════════════════════════════════
 
-8. Accordion
+8. 🎁 Accordion
+   ═══════════════════════════════════════════════════════════
+
+Tab:AddAccordion(o)
+
+Param   Type     Default
+Name    string   "Accordion"
+Default boolean  false
 
 ```lua
 local Acc = Tab:AddAccordion({
@@ -504,32 +569,33 @@ Acc:AddButton({ Name = "Reset", Callback = function() end })
 ⚠️ ห้าม nested Accordion
 
 Component ที่ใส่ได้
-
 · AddToggle, AddSlider, AddButton, AddDropdown, AddColorPicker
 · AddLabel, AddSection, AddInput, AddParagraph
 · AddProgressBar, AddCard, AddMultiDropdown, AddNumberInput
 · AddTextArea, AddDivider, AddImage, AddSearch, AddTreeView
 
----
+═══════════════════════════════════════════════════════════
 
-9. Themes
+9. 🎨 Themes
+   ═══════════════════════════════════════════════════════════
 
 7 ธีมสำเร็จรูป
 
-ชื่อ        ไอคอน
-Eclipse     🌒
-Ocean       🌊
-Forest      🌲
-Inferno     🔥
-Sakura      🌸
-Midnight    🖤
-Rainbow     🌈
+ชื่อ        ไอคอน   โทนสี
+Eclipse     🌒     ม่วงเข้ม (default)
+Ocean       🌊     ฟ้าเข้ม
+Forest      🌲     เขียว
+Inferno     🔥     ส้ม-แดง
+Sakura      🌸     ชมพู
+Midnight    🖤     เทาเข้ม
+Rainbow     🌈     หลายสี
 
-เปิดที่ ⚙️ Settings → Preset Themes
+เปิดที่: ⚙️ Settings → Preset Themes
 
----
+═══════════════════════════════════════════════════════════
 
-10. Rainbow Mode 🌈
+10. 🌈 Rainbow Mode
+    ═══════════════════════════════════════════════════════════
 
 วิธีเปิด
 
@@ -537,7 +603,6 @@ Rainbow     🌈
 2. 🌈 Rainbow Mode → toggle
 
 สิ่งที่เปลี่ยน
-
 · 🎨 Accent
 · 🖼️ Background
 · 🎁 Secondary
@@ -548,11 +613,14 @@ Rainbow     🌈
 · 🔘 Tab buttons
 · ✨ UIStroke
 
+⏱️ ความเร็ว: 1 รอบ ≈ 20 วินาที
+
 ปิด → กลับมาธีมเดิมอัตโนมัติ
 
----
+═══════════════════════════════════════════════════════════
 
-11. Notification
+11. 🔔 Notification
+    ═══════════════════════════════════════════════════════════
 
 ```lua
 EclipseLib:Notify({
@@ -564,12 +632,12 @@ EclipseLib:Notify({
 })
 ```
 
-Param     Type    Default
-Title     string  "EclipseLib"
-Content   string  ""
-Duration  number  3
-Type      string  "info"
-Silent    boolean false
+Param     Type    Default       คำอธิบาย
+Title     string  "EclipseLib"  หัวข้อ
+Content   string  ""            เนื้อหา
+Duration  number  3             วินาที
+Type      string  "info"        info / error
+Silent    boolean false         ปิดเสียง
 
 🔔 เปลี่ยนตำแหน่ง
 
@@ -578,9 +646,10 @@ Win:SetNotifPosition("left")
 Win:SetNotifPosition("right")
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-12. Dialog System
+12. 💬 Dialog System
+    ═══════════════════════════════════════════════════════════
 
 🔔 Alert
 
@@ -623,9 +692,10 @@ if EclipseLib:Confirm("แน่ใจหรือไม่?") then
 end
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-13. Context Menu
+13. 🖱️ Context Menu
+    ═══════════════════════════════════════════════════════════
 
 ```lua
 EclipseLib:ShowContextMenu({
@@ -635,9 +705,12 @@ EclipseLib:ShowContextMenu({
 }, Vector2.new(200, 200))
 ```
 
----
+💡 คลิกข้างนอก = ปิดเมนู
 
-14. Sound System
+═══════════════════════════════════════════════════════════
+
+14. 🔊 Sound System
+    ═══════════════════════════════════════════════════════════
 
 ```lua
 EclipseLib:SetSounds({ Click = "rbxasset://sounds/new.wav" })
@@ -652,18 +725,17 @@ Sounds ที่มี
 · Toggle
 · Error
 
----
+═══════════════════════════════════════════════════════════
 
-15. Config System
+15. 💾 Config System
+    ═══════════════════════════════════════════════════════════
 
 หลักการ
-
 · ใส่ ConfigKey ใน Component → save อัตโนมัติ
-· ไฟล์เก็บใน {FolderName}/ เท่านั้น
+· ไฟล์เก็บใน {FolderName}/
 · เปลี่ยนค่า → mark dirty → autosave (ถ้าเปิด)
 
-Component ที่ ConfigKey รองรับ
-
+Component ที่ ConfigKey รองรับ (9 ตัว)
 · ✅ Toggle
 · ✅ Slider
 · ✅ Dropdown
@@ -675,7 +747,6 @@ Component ที่ ConfigKey รองรับ
 · ✅ Keybind
 
 UI State ที่เก็บอัตโนมัติ
-
 · ตำแหน่ง UI
 · ขนาด UI
 · Tab ที่เปิด
@@ -701,9 +772,10 @@ Tab:AddToggle({
 })
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-16. Key System
+16. 🔑 Key System
+    ═══════════════════════════════════════════════════════════
 
 ```lua
 local Win = EclipseLib:CreateWindow({
@@ -723,9 +795,10 @@ local Win = EclipseLib:CreateWindow({
 · ✅ Copy link
 · ✅ Shake animation
 
----
+═══════════════════════════════════════════════════════════
 
-17. Hotkeys
+17. ⌨️ Hotkeys
+    ═══════════════════════════════════════════════════════════
 
 ```lua
 local hk = Win:AddGlobalHotkey({
@@ -742,9 +815,10 @@ hk:SetKey(k)
 ✅ ปลอดภัย: RightControl, RightShift, F1–F12, Insert, Home
 ❌ ระวัง: Delete, Escape, Tab, Backspace
 
----
+═══════════════════════════════════════════════════════════
 
-18. Unload
+18. 🧹 Unload
+    ═══════════════════════════════════════════════════════════
 
 ```lua
 local count = EclipseLib:Unload()
@@ -758,17 +832,304 @@ print("Unloaded", count, "windows")
 · ✅ Clear Rainbow
 · ✅ Destroy Sound
 
----
+═══════════════════════════════════════════════════════════
 
-19. Best Practices
+19. ⏱️ Realtime Display Guide
+    ═══════════════════════════════════════════════════════════
 
-⏱️ 1. ใช้ RealtimeValue
+🎯 4 วิธีแสดงข้อมูล Realtime
+
+┌──────────────────────────────────────────────────────┐
+│  🥇 AddButton + RealtimeValue    → ตัวเลขเดี่ยว     │
+│  🥈 AddParagraph + Loop          → ข้อความยาว        │
+│  🥉 AddProgressBar               → HP/MP (bar)      │
+│  🏅 AddLabel + Loop              → ข้อความสั้น       │
+└──────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🥇 วิธีที่ 1: AddButton + RealtimeValue
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+เหมาะกับ: ตัวเลขเปลี่ยนบ่อย, ค่าเดียว
 
 ```lua
+Tab:AddButton({
+    Name = "💰 เงิน",
+    Description = "แสดงเงินปัจจุบัน",
+    RealtimeValue = function()
+        local money = 0
+        local ok, val = pcall(function()
+            return game.Players.LocalPlayer.leaderstats.Money.Value
+        end)
+        if ok then money = val end
+        return "$" .. tostring(money)
+    end,
+    Callback = function() end,
+})
+```
+
+⏱️ อัปเดตทุกเฟรม (60 Hz)
+🟢 เบา CPU
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🥈 วิธีที่ 2: AddParagraph + Manual Loop ⭐ แนะนำ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+เหมาะกับ: ข้อความยาว หลายค่า
+
+```lua
+local para = Tab:AddParagraph({
+    Title = "📊 สถานะตัวละคร",
+    Content = "กำลังโหลด...",
+})
+
+task.spawn(function()
+    while task.wait(1) do
+        local char = game.Players.LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+
+        local info = ""
+        if hum then
+            info = "❤️ HP: " .. math.floor(hum.Health) .. " / " .. math.floor(hum.MaxHealth)
+            info = info .. "\n🏃 Speed: " .. hum.WalkSpeed
+            info = info .. "\n🦘 Jump: " .. hum.JumpPower
+        else
+            info = "❌ ไม่พบตัวละคร"
+        end
+
+        para:SetContent(info)
+    end
+end)
+```
+
+⏱️ อัปเดตเอง — ควบคุม rate เองได้
+🎯 แนะนำ: 0.5 - 1 วินาที
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🥉 วิธีที่ 3: AddProgressBar
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+เหมาะกับ: ค่าที่มี min/max
+
+```lua
+Tab:AddProgressBar({
+    Name = "❤️ HP",
+    Max = 100,
+    Value = function()
+        local char = game.Players.LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then return hum.Health end
+        return 0
+    end,
+})
+```
+
+⏱️ อัปเดตทุกเฟรม
+🎨 สี: เขียว/เหลือง/แดง (ตาม %)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏅 วิธีที่ 4: AddLabel + Manual Loop
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+เหมาะกับ: ข้อความสั้น ๆ
+
+```lua
+local label = Tab:AddLabel({ Text = "" })
+
+task.spawn(function()
+    while task.wait(0.5) do
+        local stats = game:GetService("Stats")
+        local ping = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        label:SetText("📶 Ping: " .. ping .. "ms")
+    end
+end)
+```
+
+⏱️ อัปเดตเอง
+💡 ใช้ 0.5 - 1 วินาที
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 ตารางเปรียบเทียบ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Component              Update Rate    CPU    เหมาะกับ
+AddButton + Realtime   ทุกเฟรม        🟢     ตัวเลขเดียว
+AddParagraph + Loop    เอง (1s)      🟢     ข้อความยาว
+AddProgressBar         ทุกเฟรม        🟡     min/max
+AddLabel + Loop        เอง            🟢     ข้อความสั้น
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ ข้อควรระวัง
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ อย่าใช้ AddButton แบบนี้ (ไม่ update):
+
+```lua
+Tab:AddButton({
+    Name = "Money: " .. money,  -- ❌ ค้าง
+})
+```
+
+✅ ต้องใส่ RealtimeValue:
+
+```lua
+Tab:AddButton({
+    Name = "💰 เงิน",
+    RealtimeValue = function() return "$" .. money end,  -- ✅
+})
+```
+
+❌ อย่าใช้ while true ไม่มี wait:
+
+```lua
+while true do
+    label:SetText(...)  -- ❌ Freeze
+end
+```
+
+✅ ต้องมี task.wait:
+
+```lua
+while true do
+    label:SetText(...)
+    task.wait(1)  -- ✅
+end
+```
+
+═══════════════════════════════════════════════════════════
+
+20. 📝 Quick Reference
+    ═══════════════════════════════════════════════════════════
+
+🎯 สร้าง Window + Tab
+
+```lua
+local lib = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/wino444/EclipseLib/main/Library%20ui.lua"
+), true)()
+local Win = lib:CreateWindow({ Name = "Script", ConfigurationSaving = { FolderName = "MyScript" } })
+local Tab = Win:CreateTab({ Name = "Main", Icon = "⚔️" })
+```
+
+📋 Component ทุกตัว
+
+```lua
+-- Button
+Tab:AddButton({ Name, Description, RealtimeValue, Callback })
+
+-- Toggle ⭐
+Tab:AddToggle({ Name, Description, Default, ConfigKey, Callback })
+
+-- Slider ⭐
+Tab:AddSlider({ Name, Min, Max, Default, ConfigKey, Callback })
+
+-- Dropdown ⭐
+Tab:AddDropdown({ Name, Options, Default, ConfigKey, Callback })
+
+-- Input ⭐
+Tab:AddInput({ Name, Placeholder, ConfigKey, Callback })
+
+-- NumberInput ⭐
+Tab:AddNumberInput({ Name, Min, Max, Step, Default, ConfigKey, Callback })
+
+-- TextArea ⭐
+Tab:AddTextArea({ Name, Placeholder, Height, ConfigKey, Callback })
+
+-- MultiDropdown ⭐
+Tab:AddMultiDropdown({ Name, Options, Default, ConfigKey, Callback })
+
+-- ColorPicker ⭐
+Tab:AddColorPicker({ Name, Default, ConfigKey, Callback })
+
+-- Keybind ⭐
+Tab:AddKeybind({ Name, Description, Default, ConfigKey, Callback })
+
+-- Paragraph
+Tab:AddParagraph({ Title, Content })
+
+-- Section
+Tab:AddSection({ Name })
+
+-- Label
+Tab:AddLabel({ Text })
+
+-- Divider
+Tab:AddDivider({ Text, Thickness })
+
+-- ProgressBar
+Tab:AddProgressBar({ Name, Max, Value })
+
+-- Card
+Tab:AddCard({ Title, Content, Height })
+
+-- Image
+Tab:AddImage({ Name, Image, Height, ScaleType })
+
+-- Search
+Tab:AddSearch({ Name, Placeholder, OnSearch, Callback })
+
+-- TreeView
+Tab:AddTreeView({ Name, Data, Callback })
+
+-- Accordion
+Tab:AddAccordion({ Name, Default })
+```
+
+🔔 Notify + Dialog
+
+```lua
+lib:Notify({ Title, Content, Duration, Type, Silent })
+lib:Alert({ Title, Message, Type, Buttons })
+lib:Prompt({ Title, Placeholder, Default })
+lib:Toast({ Title, Content, Duration })
+lib:Confirm("message")
+```
+
+⌨️ Hotkeys + Autosave
+
+```lua
+Win:AddGlobalHotkey({ Name, Default, Callback })
+Win:SetAutosave(true, "name", 30)
+Win:SetResizable(true)
+```
+
+🧹 Unload
+
+```lua
+lib:Unload()
+```
+
+═══════════════════════════════════════════════════════════
+
+21. 🔧 Best Practices
+    ═══════════════════════════════════════════════════════════
+
+⏱️ 1. Realtime — เลือกวิธีให้เหมาะ
+
+❌ ห้าม — RunService ทุกเฟรม ใน Label เอง
+
+```lua
+RunService.Heartbeat:Connect(function()
+    label:SetText(tostring(os.clock()))
+end)
+```
+
+✅ ควร — เลือกตามงาน
+
+```lua
+-- ตัวเลขเดี่ยว → AddButton + RealtimeValue
 Tab:AddButton({
     Name = "Clock",
     RealtimeValue = function() return os.clock() end,
 })
+
+-- ข้อความยาว → AddParagraph + Loop
+local para = Tab:AddParagraph({ Title = "Status", Content = "..." })
+task.spawn(function()
+    while task.wait(1) do
+        para:SetContent("HP: " .. hp)
+    end
+end)
 ```
 
 🔔 2. Debounce Notify
@@ -798,9 +1159,10 @@ ConfigKey = "my_script_speed_v1"  -- ✅ unique + version
 ConfigKey = "speed"                -- ❌ ซ้ำง่าย
 ```
 
----
+═══════════════════════════════════════════════════════════
 
-20. Troubleshooting
+22. 🩺 Troubleshooting
+    ═══════════════════════════════════════════════════════════
 
 ❌ Tab กดไม่ติด
 → ตรวจสอบว่าสร้าง Tab สำเร็จ
@@ -815,13 +1177,34 @@ ConfigKey = "speed"                -- ❌ ซ้ำง่าย
 → ตรวจสอบ Win:SetAutosave(true, "name", 30)
 
 ❌ Key ผิดแม้ใส่ถูก
-→ ลบ eclipse_key.dat แล้วใส่ใหม่
+→ ลองลบไฟล์ key แล้วใส่ใหม่
 
----
+❌ พิมพ์ค้นหาแล้ว tab หายหมด
+→ ลบข้อความในช่องค้นหา → tabs กลับมา
+
+❌ Profile/Settings กดแล้วไม่ทำงาน
+→ กดอีกครั้ง → กลับ tab ล่าสุด
+
+═══════════════════════════════════════════════════════════
+📖 สรุป
+═══════════════════════════════════════════════════════════
+
+EclipseLib v6.5.2:
+
+· 👤 Profile บน TopBar
+· 🔍 Search Box — filter tabs realtime
+· 🎯 TopBar 5 ปุ่ม
+· 🌈 Rainbow Mode
+· 💾 Config System — Save/Load
+· ⏱️ Realtime — 4 วิธี (Button, Paragraph, ProgressBar, Label)
+· 🧹 Cleanup — Unload
+
+═══════════════════════════════════════════════════════════
 
 📘 EclipseLib v6.5.2 — เอกสารประกอบ
 🏷️ สร้างโดย wino444
 📅 อัปเดต: 2026
+
 🌟 Happy Scripting!
 
 ```
